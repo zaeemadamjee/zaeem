@@ -5,7 +5,14 @@ return {
     lazy = false,      -- load at startup
     priority = 1000,   -- load before other plugins
     config = function()
-      require("tokyonight").setup({ style = "night" })
+      require("tokyonight").setup({
+        style = "night",
+        transparent = true,
+        styles = {
+          sidebars = "transparent",
+          floats = "transparent",
+        },
+      })
       vim.cmd.colorscheme("tokyonight-night")
     end,
   },
@@ -40,6 +47,10 @@ return {
           filtered_items = { hide_dotfiles = false },
         },
       })
+      -- Make neo-tree background transparent
+      vim.api.nvim_set_hl(0, "NeoTreeNormal", { bg = "NONE", ctermbg = "NONE" })
+      vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { bg = "NONE", ctermbg = "NONE" })
+      vim.api.nvim_set_hl(0, "NeoTreeEndOfBuffer", { bg = "NONE", ctermbg = "NONE" })
     end,
   },
 }
