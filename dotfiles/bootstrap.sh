@@ -85,6 +85,31 @@ if ! command -v claude &>/dev/null; then
   curl -fsSL https://claude.ai/install.sh | bash
 fi
 
+# --- Fetch secrets from GCP Secret Manager ---
+# Secret names in GCP must match the env var name exactly (e.g. ANTHROPIC_API_KEY)
+SECRETS=(
+  "ANTHROPIC_API_KEY"
+)
+log "Fetching secrets from Secret Manager..."
+METADATA_ROOT="http://metadata.google.internal/computeMetadata/v1"
+GCP_TOKEN=$(curl -sf -H "Metadata-Flavor: Google" "$METADATA_ROOT/instance/service-accounts/default/token" | jq -r .access_token)
+GCP_PROJECT=$(curl -sf -H "Metadata-Flavor: Google" "$METADATA_ROOT/project/project-id")
+mkdir -p "$HOME/.config"
+: > "$HOME/.config/secrets.env"
+chmod 600 "$HOME/.config/secrets.env"
+for SECRET_NAME in "${SECRETS[@]}"; do
+  VALUE=$(curl -sf \
+    -H "Authorization: Bearer $GCP_TOKEN" \
+    "https://secretmanager.googleapis.com/v1/projects/$GCP_PROJECT/secrets/$SECRET_NAME/versions/latest:access" \
+    | jq -r .payload.data | base64 -d)
+  if [ -n "$VALUE" ]; then
+    printf 'export %s=%s\n' "$SECRET_NAME" "$VALUE" >> "$HOME/.config/secrets.env"
+    log "  $SECRET_NAME fetched"
+  else
+    log "  WARNING: Could not fetch secret '$SECRET_NAME'"
+  fi
+done
+
 # --- Install opencode ---
 if ! command -v opencode &>/dev/null; then
   log "Installing opencode..."

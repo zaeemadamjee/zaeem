@@ -37,6 +37,12 @@ resource "google_project_iam_member" "otelcol_logs" {
   member  = "serviceAccount:${google_service_account.otelcol.email}"
 }
 
+resource "google_project_iam_member" "devbox_secret_accessor" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.otelcol.email}"
+}
+
 resource "google_compute_firewall" "allow_ssh" {
   name    = "devbox-allow-ssh"
   network = "default"

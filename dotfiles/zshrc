@@ -51,6 +51,9 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 export OTEL_LOG_USER_PROMPTS=1
 
+# --- Secrets (fetched from GCP Secret Manager on bootstrap) ---
+[ -f "$HOME/.config/secrets.env" ] && source "$HOME/.config/secrets.env"
+
 # --- Rust/cargo ---
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 
