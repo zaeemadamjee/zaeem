@@ -1,0 +1,78 @@
+# --- SSH agent forwarding (stable socket so tmux panes stay connected) ---
+# Must run before tmux attach so the symlink is fresh when we re-enter an existing session.
+if [[ -n "$SSH_AUTH_SOCK" && "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" ]]; then
+  ln -sf "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"
+fi
+export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
+
+# --- Auto-attach tmux on SSH login (must be before anything touches the terminal) ---
+if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ -t 0 ]]; then
+  exec tmux new-session -A -s main
+fi
+
+# --- History ---
+HISTSIZE=50000
+SAVEHIST=50000
+HISTFILE=~/.zsh_history
+setopt HIST_IGNORE_DUPS
+setopt SHARE_HISTORY
+setopt HIST_VERIFY
+
+# --- Options ---
+setopt AUTO_CD
+setopt CORRECT
+
+# --- Aliases ---
+alias ls='eza -A'
+alias ll='eza -lAh --git'
+alias gs='git status'
+alias gst='git status'
+alias gd='git diff'
+alias gl='git log --oneline -20'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias cc='claude'
+alias ccd='claude --dangerously-skip-permissions'
+
+# --- devbox (manages node, python, go, ruby, rust, etc.) ---
+eval "$(devbox global shellenv)"
+
+# --- Prompt (after devbox so starship is in PATH) ---
+eval "$(starship init zsh)"
+
+# --- Claude Code (native install lives in ~/.local/bin) ---
+export PATH="$HOME/.local/bin:$PATH"
+
+# --- Claude Code OTEL telemetry → local collector → Google Cloud Monitoring ---
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+export OTEL_LOG_USER_PROMPTS=1
+
+# --- Rust/cargo ---
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
+# --- Go workspace binaries ---
+export PATH="$PATH:$HOME/go/bin"
+
+# --- fzf ---
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# --- zoxide (smart cd) ---
+eval "$(zoxide init zsh)"
+
+# --- First login: clone pinecone repos (needs SSH agent) ---
+REPOS_MARKER="$HOME/.pinecone-repos-cloned"
+CLONE_SCRIPT="$HOME/zaeem-setup/scripts/clone-repos.sh"
+if [[ ! -f "$REPOS_MARKER" ]] && [[ -f "$CLONE_SCRIPT" ]] && [[ -n "${SSH_AUTH_SOCK:-}" ]]; then
+  if bash "$CLONE_SCRIPT"; then
+    touch "$REPOS_MARKER"
+  fi
+fi
+
+# opencode
+export PATH=/home/zaeem/.opencode/bin:$PATH
+export PATH="$HOME/.npm-global/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"

@@ -1,0 +1,45 @@
+return {
+  -- Tokyo Night colorscheme (matches tmux theme)
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,      -- load at startup
+    priority = 1000,   -- load before other plugins
+    config = function()
+      require("tokyonight").setup({ style = "night" })
+      vim.cmd.colorscheme("tokyonight-night")
+    end,
+  },
+
+  -- Statusline
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("lualine").setup({
+        options = { theme = "tokyonight" },
+      })
+    end,
+  },
+
+  -- File explorer sidebar
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v3.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "MunifTanjim/nui.nvim",
+    },
+    keys = {
+      { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Toggle file explorer" },
+    },
+    config = function()
+      require("neo-tree").setup({
+        filesystem = {
+          follow_current_file = { enabled = true },
+          filtered_items = { hide_dotfiles = false },
+        },
+      })
+    end,
+  },
+}

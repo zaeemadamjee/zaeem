@@ -1,0 +1,65 @@
+# starship.toml — https://starship.rs/config/
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$python\
+$nodejs\
+$golang\
+$rust\
+$cmd_duration\
+$line_break\
+$character"""
+
+[directory]
+style = "cyan bold"
+truncation_length = 4
+truncate_to_repo = true
+
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = " "
+style = "yellow"
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = "yellow"
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?"
+stashed = "$"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+
+[character]
+success_symbol = "[❯](bold cyan)"
+error_symbol = "[❯](bold red)"
+
+[cmd_duration]
+min_time = 5_000
+format = "took [$duration](bold yellow) "
+
+[python]
+format = '[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style) '
+symbol = " "
+style = "green"
+
+[nodejs]
+format = "[$symbol($version)]($style) "
+symbol = " "
+style = "green"
+
+[golang]
+format = "[$symbol($version)]($style) "
+symbol = " "
+style = "cyan"
+
+[rust]
+format = "[$symbol($version)]($style) "
+symbol = " "
+style = "red"

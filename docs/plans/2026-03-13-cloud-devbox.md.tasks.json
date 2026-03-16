@@ -1,0 +1,20 @@
+{
+  "planPath": "docs/plans/2026-03-13-cloud-devbox.md",
+  "tasks": [
+    {"id": 7,  "subject": "Task 1: Enable GCP APIs and create SSH key",       "status": "completed"},
+    {"id": 8,  "subject": "Task 2: Bootstrap GCS state bucket",               "status": "completed"},
+    {"id": 9,  "subject": "Task 3: Terraform provider and backend config",    "status": "completed"},
+    {"id": 10, "subject": "Task 4: Terraform firewall rule",                  "status": "completed"},
+    {"id": 11, "subject": "Task 5: Terraform VM instance",                    "status": "completed"},
+    {"id": 12, "subject": "Task 6: devbox interview and devbox.json",         "status": "completed"},
+    {"id": 13, "subject": "Task 7: Dotfiles — zsh config",                   "status": "completed"},
+    {"id": 14, "subject": "Task 8: Dotfiles — tmux config",                  "status": "completed"},
+    {"id": 15, "subject": "Task 9: Dotfiles — gitconfig",                    "status": "completed"},
+    {"id": 16, "subject": "Task 10: Dotfiles — bootstrap.sh",                "status": "completed"},
+    {"id": 17, "subject": "Task 11: Auto-stop systemd timer",                "status": "completed"},
+    {"id": 18, "subject": "Task 12: start.sh and stop.sh scripts",           "status": "completed"},
+    {"id": 19, "subject": "Task 13: GCP billing budget alerts",              "status": "completed"},
+    {"id": 20, "subject": "Task 14: First-boot end-to-end test",             "status": "pending"}
+  ],
+  "lastUpdated": "2026-03-13T00:00:00Z"
+}
