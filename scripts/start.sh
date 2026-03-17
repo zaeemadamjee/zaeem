@@ -41,8 +41,11 @@ fi
 
 echo "==> VM is up at $IP"
 
+# Remove stale known_hosts entry — VM gets new host keys after each reset
+ssh-keygen -R "$IP" 2>/dev/null || true
+
 echo "==> Copying Ghostty terminfo to devbox..."
-infocmp -x | ssh -i "$SSH_KEY" "${SSH_USER}@${IP}" -- tic -x -
+infocmp -x | ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "${SSH_USER}@${IP}" -- tic -x -
 
 # Patch or create ~/.ssh/config entry
 touch "$SSH_CONFIG"

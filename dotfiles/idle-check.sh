@@ -23,7 +23,7 @@ fi
 # Check CPU usage (1-minute load average vs CPU count)
 CPU_COUNT=$(nproc)
 LOAD=$(awk '{print $1}' /proc/loadavg)
-CPU_BUSY=$(awk -v load="$LOAD" -v cpus="$CPU_COUNT" 'BEGIN { print (load / cpus > 0.05) ? 1 : 0 }')
+CPU_BUSY=$(awk -v avg="$LOAD" -v cpus="$CPU_COUNT" 'BEGIN { print (avg / cpus > 0.05) ? 1 : 0 }')
 
 if [ "$CPU_BUSY" -eq 1 ]; then
   log "CPU busy (load=$LOAD) — resetting idle timer"

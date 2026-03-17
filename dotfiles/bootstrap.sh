@@ -125,7 +125,7 @@ if [ -f "$DOTFILES_DIR/idle-check.sh" ]; then
   sudo cp "$DOTFILES_DIR/devbox-idle.timer"   /etc/systemd/system/devbox-idle.timer
   sudo systemctl daemon-reload
   sudo systemctl enable --now devbox-idle.timer
-  log "Idle timer enabled (30min threshold, checks every 10min)"
+  log "Idle timer enabled (20min threshold, checks every 10min)"
 fi
 
 log ""
