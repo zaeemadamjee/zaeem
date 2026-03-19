@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# idle-check.sh — Powers off the VM if idle for 30 minutes.
+# idle-check.sh — Powers off the VM if idle for 20 minutes.
 #
-# "Idle" means: CPU load < 5% AND no active Claude Code process.
+# "Idle" means: CPU load < 5% AND no active Claude Code or OpenCode process.
 # Runs every 10 minutes via systemd timer (devbox-idle.timer).
 # Logs to /var/log/idle-check.log
 
@@ -13,9 +13,9 @@ LOG="/var/log/idle-check.log"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"; }
 
-# Check if Claude Code is running
-if pgrep -f "claude-code\|@anthropic-ai" &>/dev/null; then
-  log "Claude Code active — resetting idle timer"
+# Check if Claude Code or OpenCode is running
+if pgrep -f "claude-code\|@anthropic-ai\|opencode" &>/dev/null; then
+  log "AI coding tool active — resetting idle timer"
   date +%s > "$STATE_FILE"
   exit 0
 fi
