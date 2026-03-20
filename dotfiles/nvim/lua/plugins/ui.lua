@@ -23,7 +23,12 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       require("lualine").setup({
-        options = { theme = "tokyonight" },
+        options = {
+          theme = "tokyonight",
+          -- Default lualine uses powerline arrows; use vertical dividers instead.
+          section_separators = { left = "│", right = "│" },
+          component_separators = { left = "│", right = "│" },
+        },
       })
     end,
   },

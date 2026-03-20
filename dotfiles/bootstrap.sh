@@ -30,11 +30,13 @@ devbox global pull "$REPO_ROOT/devbox/devbox.json"
 # --- Symlink dotfiles ---
 log "Symlinking dotfiles..."
 ln -sf "$DOTFILES_DIR/zshrc"          "$HOME/.zshrc"
+ln -sf "$DOTFILES_DIR/aliases.sh"     "$HOME/.aliases"
 ln -sf "$DOTFILES_DIR/tmux.conf"      "$HOME/.tmux.conf"
 ln -sf "$DOTFILES_DIR/gitconfig"      "$HOME/.gitconfig"
-mkdir -p "$HOME/.config"
+mkdir -p "$HOME/.config" "$HOME/.config/opencode"
 ln -sfT "$DOTFILES_DIR/nvim"          "$HOME/.config/nvim"
 ln -sf "$DOTFILES_DIR/starship.toml"  "$HOME/.config/starship.toml"
+ln -sf "$DOTFILES_DIR/opencode/opencode.json" "$HOME/.config/opencode/opencode.json"
 
 # --- Set zsh as default shell ---
 ZSH_PATH=$(command -v zsh)
