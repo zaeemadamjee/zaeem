@@ -5,7 +5,7 @@ clipboard-read = allow
 window-theme = dark
 
 title = Zaeem
-macos-titlebar-style = native
+macos-titlebar-style = tabs
 window-title-font-family = JetBrainsMono
 window-titlebar-background = #000000
 
