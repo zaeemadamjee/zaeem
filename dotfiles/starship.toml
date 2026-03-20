@@ -8,6 +8,22 @@ $character
 """
 
 add_newline = false
+palette = "tokyonight"
+
+# ───────── PALETTE ─────────
+[palettes.tokyonight]
+bg = "#1a1b26"        # main background
+fg = "#c0caf5"        # primary foreground (soft white/blue)
+
+blue = "#7aa2f7"      # bright blue
+cyan = "#7dcfff"      # light cyan
+green = "#9ece6a"     # green accent
+yellow = "#e0af68"    # warm yellow
+red = "#f7768e"       # soft red/pink
+purple = "#bb9af7"    # signature tokyo night purple
+
+muted = "#565f89"     # subtle text
+subtle = "#24283b"    # darker background elements
 
 # ─── DIRECTORY (PATH) ─────────────────────────────────────────────
 [directory]
