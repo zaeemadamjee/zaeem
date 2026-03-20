@@ -126,13 +126,24 @@ resource "google_compute_instance" "devbox" {
       cat > /home/zaeem/.zshrc <<'ZSHRC'
 # Temporary .zshrc — clones zaeem_devbox and bootstraps on first SSH login.
 # Replaced by bootstrap.sh with the real dotfiles/zshrc symlink.
-if [[ ! -f "$HOME/.bootstrap-complete" ]] && [[ -n "$${SSH_AUTH_SOCK:-}" ]]; then
-  echo "==> First login: cloning zaeem_devbox..."
-  git clone git@github.com:zaeemadamjee/zaeem_devbox.git "$HOME/zaeem_devbox"
-  echo "==> Running bootstrap..."
-  bash "$HOME/zaeem_devbox/dotfiles/bootstrap.sh" && touch "$HOME/.bootstrap-complete"
-  echo "==> Reloading shell with full config..."
-  exec zsh
+if [[ ! -f "$HOME/.bootstrap-complete" ]]; then
+  if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then
+    echo ""
+    echo "  Bootstrap is ready but requires SSH agent forwarding."
+    echo "  Your local SSH agent must be running with your GitHub key loaded."
+    echo ""
+    echo "  To fix, run on your local machine:"
+    echo "    ssh-add ~/.ssh/zaeem_devbox"
+    echo "  Then reconnect."
+    echo ""
+  else
+    echo "==> First login: cloning zaeem_devbox..."
+    git clone git@github.com:zaeemadamjee/zaeem_devbox.git "$HOME/zaeem_devbox"
+    echo "==> Running bootstrap..."
+    bash "$HOME/zaeem_devbox/dotfiles/bootstrap.sh" && touch "$HOME/.bootstrap-complete"
+    echo "==> Reloading shell with full config..."
+    exec zsh
+  fi
 fi
 ZSHRC
       chown zaeem:zaeem /home/zaeem/.zshrc

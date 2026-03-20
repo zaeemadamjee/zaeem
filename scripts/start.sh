@@ -92,5 +92,14 @@ EOF
   echo "==> Added $SSH_HOST to SSH config"
 fi
 
+# Warn if SSH agent has no keys loaded — bootstrap won't run without agent forwarding
+if ! ssh-add -l &>/dev/null; then
+  echo ""
+  echo "  Warning: SSH agent has no keys loaded."
+  echo "  Bootstrap will not run on the VM without agent forwarding."
+  echo "  Run: ssh-add ~/.ssh/zaeem_devbox"
+  echo ""
+fi
+
 echo "==> Connecting to $SSH_HOST (will auto-attach to tmux session)..."
 ssh "$SSH_HOST"
