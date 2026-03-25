@@ -188,20 +188,14 @@ step --stream "Nix package manager" \
 
 if ! $CHECK_ONLY; then
   local_t0=$(_t0)
-  _devbox_log="$(mktemp /tmp/bootstrap-devbox-XXXXXX.log)"
-  if gum spin --spinner dot \
-       --title "  devbox global packages (first run installs Nix — may take a few minutes)..." -- \
-       bash -c "devbox global pull '$REPO_ROOT/devbox/devbox.json' >'$_devbox_log' 2>&1"; then
+  # Run devbox directly — no gum spin wrapper — so Nix gets the real terminal
+  # and its native progress bars/cursor-rewriting render correctly.
+  # A static pending line is printed first so the user knows what's starting.
+  printf "  \033[2m○\033[0m  devbox global packages \033[2m(first run installs Nix — may take a few minutes)\033[0m\n"
+  if devbox global pull "$REPO_ROOT/devbox/devbox.json"; then
     ok "devbox global packages  $(gum style --faint "$(_elapsed "$local_t0")")"
-    rm -f "$_devbox_log"
   else
     fail "devbox global packages  $(gum style --faint "$(_elapsed "$local_t0")")"
-    if [[ -s "$_devbox_log" ]]; then
-      printf '\n'
-      gum style --faint "  Last 30 lines (full log: $_devbox_log):"
-      tail -30 "$_devbox_log" | sed 's/^/    /'
-      printf '\n'
-    fi
     exit 1
   fi
   eval "$(devbox global shellenv)"
