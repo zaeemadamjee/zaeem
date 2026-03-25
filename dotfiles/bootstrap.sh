@@ -45,6 +45,10 @@ if ! command -v gum &>/dev/null; then
   exit 1
 fi
 
+# Align gum spin spinner character (col 0 by default) with ✓/⚠/✗ symbols (col 2).
+# GUM_SPIN_PADDING adds left padding to the entire spinner+title row.
+export GUM_SPIN_PADDING="0 0 0 2"
+
 # Millisecond timestamp (falls back to seconds on systems without %3N).
 _t0()      { date +%s%3N 2>/dev/null || date +%s; }
 _elapsed() {

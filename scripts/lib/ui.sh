@@ -24,3 +24,9 @@ ok()      { printf "  ${GREEN}✓${RESET}  %s\n" "$*"; }
 warn()    { printf "  ${YELLOW}⚠${RESET}  %s\n" "$*"; }
 fail()    { printf "  ${RED}✗${RESET}  %s\n" "$*" >&2; }
 skip()    { printf "  ${GREEN}✓${RESET}  \033[2m%s\033[0m\n" "$*"; }
+
+# Align the gum spin spinner character (col 0 by default) with the ✓/⚠/✗
+# symbols above (col 2). GUM_SPIN_PADDING adds left padding to the entire
+# spinner+title row. Picked up automatically by all gum spin calls in any
+# script that sources this file.
+export GUM_SPIN_PADDING="0 0 0 2"
