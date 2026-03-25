@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# idle-check.sh — Powers off the VM if idle for 20 minutes.
+# idle-check.sh — Powers off the VM if idle for 30 minutes.
 #
 # "Idle" means: CPU load < 5% AND no active Claude Code or OpenCode process.
 # Runs every 10 minutes via systemd timer (devbox-idle.timer).
@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-IDLE_THRESHOLD_MINUTES=20
+IDLE_THRESHOLD_MINUTES=30
 STATE_FILE="/tmp/last_active_time"
 LOG="/var/log/idle-check.log"
 

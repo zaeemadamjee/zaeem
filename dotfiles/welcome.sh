@@ -26,12 +26,6 @@ _machine_mem()    { free -h 2>/dev/null | awk '/^Mem:/{print $2 " total, " $7 " 
 _machine_disk()   { df -h / 2>/dev/null | awk 'NR==2{print $3 " / " $2 " (" $5 " used)"}' || echo '?'; }
 _machine_uptime() { uptime -p 2>/dev/null | sed 's/^up //' || echo '?'; }
 
-SYS_OS="$(_machine_os)"
-SYS_CPU="$(_machine_cpu)"
-SYS_MEM="$(_machine_mem)"
-SYS_DISK="$(_machine_disk)"
-SYS_UPTIME="$(_machine_uptime)"
-
 # ---------------------------------------------------------------------------
 _run_bootstrap() {
   if bash "$REPO/dotfiles/bootstrap.sh"; then
@@ -53,7 +47,6 @@ if ! command -v gum &>/dev/null; then
   return 1 2>/dev/null || exit 1
 fi
 
-# Build bootstrap status line
 if $BOOTSTRAPPED; then
   _bootstrap_status="$(gum style --foreground 46 '✓ complete')"
 else
@@ -71,14 +64,17 @@ gum style \
   "Profile     $(gum style --foreground 99 "$PROFILE")" \
   "Bootstrap   $_bootstrap_status" \
   "" \
-  "OS          $(gum style --foreground 244 "$SYS_OS")" \
-  "CPU         $(gum style --foreground 244 "$SYS_CPU")" \
-  "Memory      $(gum style --foreground 244 "$SYS_MEM")" \
-  "Disk        $(gum style --foreground 244 "$SYS_DISK")" \
-  "Uptime      $(gum style --foreground 244 "$SYS_UPTIME")"
+  "OS          $(gum style --foreground 244 "$(_machine_os)")" \
+  "CPU         $(gum style --foreground 244 "$(_machine_cpu)")" \
+  "Memory      $(gum style --foreground 244 "$(_machine_mem)")" \
+  "Disk        $(gum style --foreground 244 "$(_machine_disk)")" \
+  "Uptime      $(gum style --foreground 244 "$(_machine_uptime)")"
 echo
 
-if ! $BOOTSTRAPPED; then
+if $BOOTSTRAPPED; then
+  bash "$REPO/dotfiles/bootstrap.sh" --check || true
+  echo
+else
   if gum confirm --default=yes \
       --prompt.foreground 212 \
       --selected.background 99 \

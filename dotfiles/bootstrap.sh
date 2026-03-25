@@ -18,6 +18,9 @@ set -euo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$DOTFILES_DIR/.." && pwd)"
 
+# Export so install bodies can access them when run in bash -c subshells via gum spin.
+export DOTFILES_DIR REPO_ROOT
+
 # ---------------------------------------------------------------------------
 # Flags
 # ---------------------------------------------------------------------------
@@ -27,7 +30,7 @@ for arg in "$@"; do
 done
 
 # ---------------------------------------------------------------------------
-# Output helpers
+# Output helpers + timing
 # ---------------------------------------------------------------------------
 GREEN="\033[32m"; YELLOW="\033[33m"; RED="\033[31m"; CYAN="\033[36m"; DIM="\033[2m"; RESET="\033[0m"
 
@@ -42,25 +45,41 @@ if ! command -v gum &>/dev/null; then
   exit 1
 fi
 
+# Millisecond timestamp (falls back to seconds on systems without %3N).
+_t0()      { date +%s%3N 2>/dev/null || date +%s; }
+_elapsed() {
+  local d=$(( $(_t0) - $1 ))
+  (( d < 1000 )) && { echo "${d}ms"; return; }
+  echo "$(( d / 1000 )).$(( (d % 1000) / 100 ))s"
+}
+
+BOOTSTRAP_T0=$(_t0)
+
 section() { echo; gum style --bold --foreground 99 "  ▸  $*"; echo; }
 ok()      { printf "  ${GREEN}✓${RESET}  %s\n" "$*"; }
 skip()    { printf "  ${GREEN}✓${RESET}  ${DIM}%s (already installed)${RESET}\n" "$*"; }
-doing()   { printf "  ${CYAN}→${RESET}  %s...\n" "$*"; }
 warn()    { printf "  ${YELLOW}⚠${RESET}  %s\n" "$*"; }
 fail()    { printf "  ${RED}✗${RESET}  %s\n" "$*"; }
 
-# spin_or_run <title> <cmd> [args...]
-spin_or_run() {
+# timed_spin [--show-output] <title> <cmd> [args...]
+# Runs cmd under a gum spinner and prints ✓ with elapsed time when done.
+# Use --show-output for commands whose live output is informative (e.g. devbox pull).
+timed_spin() {
+  local show_output=""
+  [[ "${1:-}" == "--show-output" ]] && { show_output="--show-output"; shift; }
   local title="$1"; shift
-  gum spin --spinner dot --title "  ${title}..." -- "$@"
+  local t0; t0=$(_t0)
+  # shellcheck disable=SC2086
+  gum spin $show_output --spinner dot --title "  ${title}..." -- "$@"
+  ok "${title}  $(gum style --dim "$(_elapsed "$t0")")"
 }
 
 MISSING=()
 track_missing() { MISSING+=("$1"); }
 
 # step <label> <check_expr> <install_body>
-#   check_expr  — bash expression; exit 0 = already done
-#   install_body — commands to run if not done (skipped in --check mode)
+#   check_expr   — bash expression evaluated in current shell; exit 0 = already done
+#   install_body — shell command string run via gum spin (subprocess); skipped in --check mode
 step() {
   local label="$1" check="$2" install="$3"
   if eval "$check" &>/dev/null 2>&1; then
@@ -69,9 +88,9 @@ step() {
     fail "$label"
     track_missing "$label"
   else
-    doing "$label"
-    eval "$install"
-    ok "$label"
+    local t0; t0=$(_t0)
+    gum spin --spinner dot --title "  ${label}..." -- bash -c "$install"
+    ok "${label}  $(gum style --dim "$(_elapsed "$t0")")"
   fi
 }
 
@@ -119,9 +138,10 @@ step "devbox binary" \
   "curl -fsSL https://releases.jetify.com/devbox -o /tmp/devbox && sudo install -m 755 /tmp/devbox /usr/local/bin/devbox && rm /tmp/devbox"
 
 if ! $CHECK_ONLY; then
-  spin_or_run "Pulling devbox global packages" devbox global pull "$REPO_ROOT/devbox/devbox.json"
+  # --show-output so the user can see which packages are being pulled
+  timed_spin --show-output "Pulling devbox global packages" \
+    devbox global pull "$REPO_ROOT/devbox/devbox.json"
   eval "$(devbox global shellenv)"
-  ok "devbox global packages"
 else
   step "devbox global packages synced" \
     "devbox global list 2>/dev/null | grep -q ." \
@@ -158,6 +178,10 @@ symlink_step() {
   step "$label" "_link_check '$src' '$dst'" "$install_cmd"
 }
 
+if ! $CHECK_ONLY; then
+  mkdir -p "$HOME/.config" "$HOME/.config/opencode"
+fi
+
 symlink_step "~/.zshrc"                          "$DOTFILES_DIR/zshrc"                        "$HOME/.zshrc"
 symlink_step "~/.aliases.sh"                     "$DOTFILES_DIR/aliases.sh"                   "$HOME/.aliases.sh"
 symlink_step "~/.tmux.conf"                      "$DOTFILES_DIR/tmux.conf"                    "$HOME/.tmux.conf"
@@ -166,23 +190,20 @@ symlink_step "~/.config/nvim"                    "$DOTFILES_DIR/nvim"           
 symlink_step "~/.config/starship.toml"           "$DOTFILES_DIR/starship.toml"                "$HOME/.config/starship.toml"
 symlink_step "~/.config/opencode/opencode.json"  "$DOTFILES_DIR/opencode/opencode.json"       "$HOME/.config/opencode/opencode.json"
 
-if ! $CHECK_ONLY; then
-  mkdir -p "$HOME/.config" "$HOME/.config/opencode"
-fi
-
 # ---------------------------------------------------------------------------
 # Observability (otelcol-contrib)
 # ---------------------------------------------------------------------------
 section "Observability"
 OTELCOL_SRC="$(devbox global path 2>/dev/null)/.devbox/nix/profile/default/bin/otelcol-contrib"
+export OTELCOL_SRC
 
 step "otelcol-contrib binary" \
   "command -v otelcol-contrib" \
-  "[[ -f '$OTELCOL_SRC' ]] && sudo ln -sf '$OTELCOL_SRC' /usr/local/bin/otelcol-contrib || warn 'otelcol-contrib not found in devbox — is it in devbox.json?'"
+  "[[ -f \"\$OTELCOL_SRC\" ]] && sudo ln -sf \"\$OTELCOL_SRC\" /usr/local/bin/otelcol-contrib || echo '  ⚠  otelcol-contrib not found in devbox — is it in devbox.json?'"
 
 step "otelcol-contrib systemd service" \
   "systemctl is-enabled otelcol-contrib &>/dev/null" \
-  "sudo mkdir -p /etc/otelcol-contrib && sudo cp '$DOTFILES_DIR/otelcol-contrib-config.yaml' /etc/otelcol-contrib/config.yaml && sudo cp '$DOTFILES_DIR/otelcol-contrib.service' /etc/systemd/system/otelcol-contrib.service && sudo systemctl daemon-reload && sudo systemctl enable --now otelcol-contrib"
+  "sudo mkdir -p /etc/otelcol-contrib && sudo cp \"\$DOTFILES_DIR/otelcol-contrib-config.yaml\" /etc/otelcol-contrib/config.yaml && sudo cp \"\$DOTFILES_DIR/otelcol-contrib.service\" /etc/systemd/system/otelcol-contrib.service && sudo systemctl daemon-reload && sudo systemctl enable --now otelcol-contrib"
 
 # ---------------------------------------------------------------------------
 # Idle timer
@@ -191,17 +212,14 @@ section "Idle timer"
 if idle_timer_enabled_bool; then
   step "devbox-idle systemd timer" \
     "systemctl is-enabled devbox-idle.timer &>/dev/null" \
-    "sudo cp '$DOTFILES_DIR/idle-check.sh' /usr/local/bin/idle-check.sh && sudo chmod +x /usr/local/bin/idle-check.sh && sudo cp '$DOTFILES_DIR/devbox-idle.service' /etc/systemd/system/devbox-idle.service && sudo cp '$DOTFILES_DIR/devbox-idle.timer' /etc/systemd/system/devbox-idle.timer && sudo systemctl daemon-reload && sudo systemctl enable --now devbox-idle.timer"
+    "sudo cp \"\$DOTFILES_DIR/idle-check.sh\" /usr/local/bin/idle-check.sh && sudo chmod +x /usr/local/bin/idle-check.sh && sudo cp \"\$DOTFILES_DIR/devbox-idle.service\" /etc/systemd/system/devbox-idle.service && sudo cp \"\$DOTFILES_DIR/devbox-idle.timer\" /etc/systemd/system/devbox-idle.timer && sudo systemctl daemon-reload && sudo systemctl enable --now devbox-idle.timer"
 else
   if systemctl is-enabled devbox-idle.timer &>/dev/null; then
     if $CHECK_ONLY; then
       warn "devbox-idle timer is running but IDLE_TIMER_ENABLED=false in profile"
     else
-      doing "removing idle timer (disabled in profile)"
-      sudo systemctl stop devbox-idle.timer 2>/dev/null || true
-      sudo systemctl disable devbox-idle.timer 2>/dev/null || true
-      sudo rm -f /etc/systemd/system/devbox-idle.timer /etc/systemd/system/devbox-idle.service /usr/local/bin/idle-check.sh
-      sudo systemctl daemon-reload && sudo systemctl reset-failed 2>/dev/null || true
+      gum spin --spinner dot --title "  Removing idle timer (disabled in profile)..." -- \
+        bash -c "sudo systemctl stop devbox-idle.timer 2>/dev/null; sudo systemctl disable devbox-idle.timer 2>/dev/null; sudo rm -f /etc/systemd/system/devbox-idle.timer /etc/systemd/system/devbox-idle.service /usr/local/bin/idle-check.sh; sudo systemctl daemon-reload; sudo systemctl reset-failed 2>/dev/null || true"
       ok "idle timer removed"
     fi
   else
@@ -222,20 +240,15 @@ step "opencode" \
   "curl -fsSL https://opencode.ai/install | bash"
 
 if ! $CHECK_ONLY; then
-  spin_or_run "Seeding tealdeer page cache" bash -c 'tldr --update >/dev/null 2>&1 || true'
-  ok "tealdeer page cache"
-  spin_or_run "Importing atuin history" bash -c 'atuin import auto 2>/dev/null || true'
-  ok "atuin history import"
+  timed_spin "Seeding tealdeer page cache" bash -c 'tldr --update >/dev/null 2>&1 || true'
+  timed_spin "Importing atuin history"     bash -c 'atuin import auto 2>/dev/null || true'
 fi
 
 # ---------------------------------------------------------------------------
 # Secrets
 # ---------------------------------------------------------------------------
 section "Secrets"
-# Secrets are copied from scripts/profiles/<name>.env on your local machine
-# by start.sh before you connect. Bootstrap just verifies the file is present.
 if [[ -s "$HOME/.config/secrets.env" ]]; then
-  # Extract variable names from lines matching: export VAR=... or VAR=...
   mapfile -t _SECRET_VARS < <(grep -oP '^(export\s+)?\K[A-Z_][A-Z0-9_]+(?==)' "$HOME/.config/secrets.env" 2>/dev/null || true)
   ok "~/.config/secrets.env (${#_SECRET_VARS[@]} vars)"
   for _var in "${_SECRET_VARS[@]}"; do
@@ -253,6 +266,8 @@ fi
 # ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
+TOTAL_ELAPSED=$(_elapsed "$BOOTSTRAP_T0")
+
 if $CHECK_ONLY; then
   if [[ ${#MISSING[@]} -eq 0 ]]; then
     echo
@@ -275,6 +290,7 @@ else
   gum style --border rounded --padding "1 2" --border-foreground 46 \
     "$(gum style --foreground 46 --bold '✓  Bootstrap complete')" \
     "" \
+    "$(gum style --foreground 240 "Completed in ${TOTAL_ELAPSED}.")" \
     "$(gum style --foreground 240 'Log out and back in for shell changes to take effect.')" \
     "$(gum style --foreground 240 "You will auto-attach to a tmux session named 'main' on login.")"
   echo
