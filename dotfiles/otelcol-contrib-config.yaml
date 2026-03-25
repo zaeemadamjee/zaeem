@@ -17,7 +17,7 @@ exporters:
     metric:
       prefix: custom.googleapis.com
     log:
-      default_log_name: projects/zaeem-dev/logs/claude-code
+      default_log_name: projects/zaeem-dev/logs/ai-tools
 
 service:
   pipelines:

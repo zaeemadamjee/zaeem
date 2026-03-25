@@ -77,16 +77,17 @@ timed_spin() {
 MISSING=()
 track_missing() { MISSING+=("$1"); }
 
-# step [--interactive] <label> <check_expr> <install_body>
+# step [--stream] <label> <check_expr> <install_body>
 #   check_expr   — bash expression evaluated in current shell; exit 0 = already done
 #   install_body — shell command string; skipped in --check mode
 #
-#   Default:       runs via gum spin (hidden output, spinner visible) — for fast silent commands
-#   --interactive: runs via eval in current shell (full terminal access) — for installers that
-#                  stream output, use progress bars, or prompt the user for input
+#   Default:  gum spin with hidden output — for fast silent commands (symlinks, copies, etc.)
+#   --stream: gum spin --show-output — for noisy-but-automated installers that stream
+#             progress text. Output scrolls below the spinner; timing prints on completion.
+#             Commands must not prompt for input (use NIX_INSTALLER_NO_CONFIRM etc.).
 step() {
-  local interactive=false
-  [[ "${1:-}" == "--interactive" ]] && { interactive=true; shift; }
+  local stream=false
+  [[ "${1:-}" == "--stream" ]] && { stream=true; shift; }
   local label="$1" check="$2" install="$3"
   if eval "$check" &>/dev/null 2>&1; then
     skip "$label"
@@ -95,12 +96,8 @@ step() {
     track_missing "$label"
   else
     local t0; t0=$(_t0)
-    if $interactive; then
-      echo
-      gum style --bold --foreground 244 "  Installing: ${label}"
-      echo
-      eval "$install"
-      echo
+    if $stream; then
+      gum spin --show-output --spinner dot --title "  ${label}..." -- bash -c "$install"
     else
       gum spin --spinner dot --title "  ${label}..." -- bash -c "$install"
     fi
@@ -152,13 +149,14 @@ step "devbox binary" \
   "curl -fsSL https://releases.jetify.com/devbox -o /tmp/devbox && sudo install -m 755 /tmp/devbox /usr/local/bin/devbox && rm /tmp/devbox"
 
 if ! $CHECK_ONLY; then
-  # Run directly (not via gum spin) so Nix prompts and progress bars render correctly.
+  # NIX_INSTALLER_NO_CONFIRM suppresses the Determinate Systems nix-installer's
+  # "Press enter to continue" prompts, making the install fully automated.
+  # With no prompts, --show-output streams Nix's progress cleanly below the spinner.
   local_t0=$(_t0)
-  echo
-  gum style --bold --foreground 244 "  Pulling devbox global packages (Nix — may take a few minutes)..."
-  echo
-  devbox global pull "$REPO_ROOT/devbox/devbox.json"
-  echo
+  NIX_INSTALLER_NO_CONFIRM=true \
+    gum spin --show-output --spinner dot \
+      --title "  devbox global packages (first run installs Nix — may take a few minutes)..." -- \
+      devbox global pull "$REPO_ROOT/devbox/devbox.json"
   ok "devbox global packages  $(gum style --faint "$(_elapsed "$local_t0")")"
   eval "$(devbox global shellenv)"
 else
@@ -250,11 +248,11 @@ fi
 # CLI tools
 # ---------------------------------------------------------------------------
 section "CLI tools"
-step --interactive "Claude Code (claude)" \
+step --stream "Claude Code (claude)" \
   "command -v claude" \
   "curl -fsSL https://claude.ai/install.sh | bash"
 
-step --interactive "opencode" \
+step --stream "opencode" \
   "command -v opencode" \
   "curl -fsSL https://opencode.ai/install | bash"
 

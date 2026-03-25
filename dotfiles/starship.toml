@@ -38,26 +38,26 @@ symbol = " "
 style = "bold purple"
 truncation_length = 35
 truncation_symbol = "…"
-format = "/ [$symbol$branch]($style)"
+format = " / [$symbol$branch]($style)"
 
 # ─── GIT STATUS ───────────────────────────────────────────────────
 [git_status]
 style = "yellow"
-format = "/ ([$all_status$ahead_behind]($style))"
+format = " / ([$all_status$ahead_behind]($style))"
 disabled = true
 
 # ─── GCLOUD ───────────────────────────────────────────────────────
 [gcloud]
 symbol = " "
 style = "bold blue"
-format = "/ [$symbol($project)]($style) "
+format = " / [$symbol($project)]($style) "
 disabled = false
 
 # ─── PYTHON VENV ──────────────────────────────────────────────────
 [python]
 symbol = " "
 style = "muted"
-format = "/ [$symbol($virtualenv)]($style) "
+format = " / [$symbol($virtualenv)]($style) "
 # Only shows when a virtualenv is active; hides python version noise
 pyenv_version_name = false
 detect_files = []
@@ -66,5 +66,5 @@ detect_extensions = []
 
 # ─── PROMPT CHARACTER ─────────────────────────────────────────────
 [character]
-success_symbol = "[➜](bold green)"
-error_symbol = "[➜](bold red)"
+success_symbol = " [➜](bold green)"
+error_symbol = " [➜](bold red)"
