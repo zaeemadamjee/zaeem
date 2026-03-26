@@ -271,14 +271,18 @@ symlink_step "~/.config/opencode/opencode.json"  "$DOTFILES_DIR/opencode/opencod
 # Observability (otelcol-contrib)
 # ---------------------------------------------------------------------------
 section "Observability"
-# Resolve the Homebrew-installed binary and symlink it to a stable system path
-# so the systemd service (which runs outside the user's shell/PATH) can find it.
-OTELCOL_SRC="$(command -v otelcol-contrib 2>/dev/null || true)"
-export OTELCOL_SRC
 
-step "otelcol-contrib binary" \
-  "test -x /usr/local/bin/otelcol-contrib" \
-  "[[ -n \"\$OTELCOL_SRC\" ]] && sudo ln -sf \"\$OTELCOL_SRC\" /usr/local/bin/otelcol-contrib || echo '  ⚠  otelcol-contrib not found in PATH — is it in brew/Brewfile?'"
+# Not available in Homebrew on Linux — install via official .deb release.
+# The .deb puts the binary at /usr/bin/otelcol-contrib (stable system path,
+# accessible to the systemd service without any PATH workarounds).
+step --stream "otelcol-contrib binary" \
+  "command -v otelcol-contrib" \
+  'LATEST=$(curl -fsSL https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases/latest \
+     | grep "\"tag_name\"" | head -1 | sed '"'"'s/.*"tag_name": "v\(.*\)".*/\1/'"'"') \
+   && curl -fsSLo /tmp/otelcol.deb \
+       "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${LATEST}/otelcol-contrib_${LATEST}_linux_amd64.deb" \
+   && sudo dpkg -i /tmp/otelcol.deb \
+   && rm /tmp/otelcol.deb'
 
 step "otelcol-contrib systemd service" \
   "systemctl is-enabled otelcol-contrib &>/dev/null" \
@@ -335,6 +339,19 @@ step --stream "supabase CLI" \
        "https://github.com/supabase/cli/releases/download/${LATEST}/supabase_${LATEST#v}_linux_amd64.deb" \
    && sudo dpkg -i /tmp/supabase.deb \
    && rm /tmp/supabase.deb'
+
+# ---------------------------------------------------------------------------
+# Rust toolchain (rustup is installed via Homebrew but is keg-only)
+# ---------------------------------------------------------------------------
+section "Rust"
+
+# Ensure the keg-only rustup binary is in PATH for this session.
+BREW_RUSTUP="${BREW_PREFIX}/opt/rustup/bin"
+[[ -d "$BREW_RUSTUP" ]] && export PATH="$BREW_RUSTUP:$PATH"
+
+step "Rust stable toolchain" \
+  "rustup toolchain list 2>/dev/null | grep -q stable" \
+  "rustup default stable"
 
 # ---------------------------------------------------------------------------
 # Node.js (via nvm)
