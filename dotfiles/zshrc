@@ -1,21 +1,16 @@
+# --- PATH: tool install dirs (must come before welcome so bootstrap --check finds them) ---
+export PATH="$HOME/.local/bin:$PATH"           # claude code
+export PATH="$HOME/.opencode/bin:$PATH"        # opencode
+export PATH="$HOME/.npm-global/bin:$PATH"      # npm globals
+export PATH="$HOME/.cargo/bin:$PATH"           # rust/cargo
+export PATH="$PATH:$HOME/go/bin"               # go workspace binaries
+
 # --- SSH agent forwarding (stable socket so tmux panes stay connected) ---
 # Must run before tmux attach so the symlink is fresh when we re-enter an existing session.
 if [[ -n "$SSH_AUTH_SOCK" && "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" ]]; then
   ln -sf "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"
 fi
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
-
-# --- Welcome screen + tmux attach (SSH login only, not already inside tmux) ---
-# First login:   welcome.sh runs and ends with a gum confirm to attach tmux.
-# After exec zsh (e.g. post-bootstrap): WELCOME_SHOWN is already exported,
-#   so skip straight to tmux attach without prompting again.
-if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ -t 0 ]]; then
-  if [[ -z "${WELCOME_SHOWN:-}" ]]; then
-    [[ -f "$HOME/zaeem_devbox/dotfiles/welcome.sh" ]] && source "$HOME/zaeem_devbox/dotfiles/welcome.sh"
-  else
-    exec tmux new-session -A -s main
-  fi
-fi
 
 # --- History ---
 HISTSIZE=50000
@@ -39,9 +34,6 @@ eval "$(devbox global shellenv)"
 # --- Prompt (after devbox so starship is in PATH) ---
 eval "$(starship init zsh)"
 
-# --- Claude Code (native install lives in ~/.local/bin) ---
-export PATH="$HOME/.local/bin:$PATH"
-
 # --- AI tool OTEL telemetry → local collector → Google Cloud Monitoring ---
 # Claude Code
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
@@ -57,11 +49,8 @@ export OPENCODE_OTLP_ENDPOINT=http://localhost:4317
 # --- Secrets (copied from local scripts/profiles/<name>.env by start.sh) ---
 [ -f "$HOME/.config/secrets.env" ] && source "$HOME/.config/secrets.env"
 
-# --- Rust/cargo ---
+# --- Rust/cargo (env sets CARGO_HOME etc, PATH already includes ~/.cargo/bin above) ---
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
-
-# --- Go workspace binaries ---
-export PATH="$PATH:$HOME/go/bin"
 
 # --- fzf ---
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -69,7 +58,14 @@ export PATH="$PATH:$HOME/go/bin"
 # --- zoxide (smart cd) ---
 eval "$(zoxide init zsh)"
 
-# opencode
-export PATH=/home/zaeem/.opencode/bin:$PATH
-export PATH="$HOME/.npm-global/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
+# --- Welcome screen + tmux attach (SSH login only, not already inside tmux) ---
+# First login:   welcome.sh runs and ends with a gum confirm to attach tmux.
+# After exec zsh (e.g. post-bootstrap): WELCOME_SHOWN is already exported,
+#   so skip straight to tmux attach without prompting again.
+if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ -t 0 ]]; then
+  if [[ -z "${WELCOME_SHOWN:-}" ]]; then
+    [[ -f "$HOME/zaeem_devbox/dotfiles/welcome.sh" ]] && source "$HOME/zaeem_devbox/dotfiles/welcome.sh"
+  else
+    exec tmux new-session -A -s main
+  fi
+fi
