@@ -168,6 +168,7 @@ PROFILE=$(gum choose \
   "${_profile_names[@]}")
 
 load_profile "$PROFILE"
+ok "$(gum style --foreground 212 --bold "$PROFILE_NAME")  $(gum style --faint "$GCP_INSTANCE_NAME")"
 
 # ---------------------------------------------------------------------------
 # Action selection
@@ -186,6 +187,7 @@ _action_line=$(gum choose \
   "initialize  — First-time provision")
 
 ACTION="${_action_line%%[[:space:]]*}"
+ok "$(gum style --foreground 46 --bold "$ACTION")  $(gum style --faint "${_action_line#*— }")"
 
 # ---------------------------------------------------------------------------
 # Summary + confirm

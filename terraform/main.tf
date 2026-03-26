@@ -141,6 +141,10 @@ resource "google_compute_instance" "devbox" {
       echo "zaeem ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/zaeem
       chmod 440 /etc/sudoers.d/zaeem
 
+      echo "[startup] Suppressing Ubuntu MOTD..."
+      touch /home/zaeem/.hushlogin
+      chown zaeem:zaeem /home/zaeem/.hushlogin
+
       echo "[startup] Writing profile name to ~/.config/devbox/profile..."
       mkdir -p /home/zaeem/.config/devbox
       printf '%s\n' "${var.profile_name}" > /home/zaeem/.config/devbox/profile

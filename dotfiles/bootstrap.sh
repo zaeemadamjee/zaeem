@@ -124,6 +124,31 @@ step() {
   fi
 }
 
+# live_step <label> <hint> <check_expr> <install_body>
+#   Like step but runs the installer with its output visible — use for tools
+#   that have their own TUI or progress display (e.g. Claude Code, opencode).
+#   <hint> is shown dim on the pending line (e.g. "may take a minute").
+live_step() {
+  local label="$1" hint="$2" check="$3" install="$4"
+  if eval "$check" &>/dev/null 2>&1; then
+    skip "$label"
+  elif $CHECK_ONLY; then
+    fail "$label"
+    track_missing "$label"
+  else
+    local t0; t0=$(_t0)
+    printf "  \033[2m○\033[0m  %s \033[2m%s\033[0m\n\n" "$label" "$hint"
+    if bash -c "$install"; then
+      echo
+      ok "${label}  $(gum style --faint "$(_elapsed "$t0")")"
+    else
+      echo
+      fail "${label}  $(gum style --faint "$(_elapsed "$t0")")"
+      return 1
+    fi
+  fi
+}
+
 # ---------------------------------------------------------------------------
 # Profile resolution (required — no default)
 # ---------------------------------------------------------------------------
@@ -241,6 +266,10 @@ if ! $CHECK_ONLY; then
   mkdir -p "$HOME/.config" "$HOME/.config/opencode"
 fi
 
+step "~/.hushlogin (suppress Ubuntu MOTD)" \
+  "test -f \$HOME/.hushlogin" \
+  "touch \$HOME/.hushlogin"
+
 symlink_step "~/.zshrc"                          "$DOTFILES_DIR/zshrc"                        "$HOME/.zshrc"
 symlink_step "~/.aliases.sh"                     "$DOTFILES_DIR/aliases.sh"                   "$HOME/.aliases.sh"
 symlink_step "~/.tmux.conf"                      "$DOTFILES_DIR/tmux.conf"                    "$HOME/.tmux.conf"
@@ -290,11 +319,11 @@ fi
 # CLI tools
 # ---------------------------------------------------------------------------
 section "CLI tools"
-step --stream "claude code" \
+live_step "Claude Code" "(may take a minute)" \
   "command -v claude" \
   "curl -fsSL https://claude.ai/install.sh | bash"
 
-step --stream "opencode" \
+live_step "opencode" "(may take a minute)" \
   "command -v opencode" \
   "curl -fsSL https://opencode.ai/install | bash"
 

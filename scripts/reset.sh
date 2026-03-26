@@ -40,8 +40,10 @@ gum spin --spinner dot --title "  Tainting VM resource..." -- \
 ok "VM resource tainted"
 
 echo
-gum spin --show-output --spinner dot --title "  Applying Terraform (destroying and recreating VM)..." -- \
-  terraform apply -var-file="$TMPVARS" -auto-approve
+gum style --foreground 244 "  Terraform will show the plan below and ask for confirmation."
+echo
+
+terraform apply -var-file="$TMPVARS"
 
 echo
 gum style --border rounded --padding "1 2" --border-foreground 46 \
