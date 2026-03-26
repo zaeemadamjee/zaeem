@@ -79,7 +79,7 @@ ok "VM is up at $IP"
 # Poll for startup script completion
 _poll_startup() {
   local user="$1" ip="$2" key="$3"
-  for i in $(seq 1 20); do
+  for i in $(seq 1 30); do
     if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
          -i "$key" -o BatchMode=yes "${user}@${ip}" \
          "sudo test -f /var/lib/startup-complete" 2>/dev/null; then
@@ -91,14 +91,14 @@ _poll_startup() {
 }
 export -f _poll_startup
 
-if ! gum spin --spinner dot --title "  Waiting for startup script to complete (up to 1.5 min)..." -- \
+if ! gum spin --spinner dot --title "  Waiting for startup script to complete (up to 2.5 min)..." -- \
      bash -c "_poll_startup '$SSH_USER' '$IP' '$SSH_KEY'"; then
   warn "Startup script did not complete within expected time — connecting anyway"
 else
   ok "Startup script complete"
 fi
 
-ssh-keygen -R "$IP" 2>/dev/null || true
+ssh-keygen -R "$IP" &>/dev/null || true
 
 # ---------------------------------------------------------------------------
 # Setup: secrets, terminfo

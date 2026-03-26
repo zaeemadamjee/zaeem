@@ -89,3 +89,13 @@ else
     echo
   fi
 fi
+
+# --- Attach to tmux ---
+if [[ -z "$TMUX" ]] && [[ -t 0 ]] && command -v tmux &>/dev/null; then
+  if gum confirm --default=yes \
+      --prompt.foreground 212 \
+      --selected.background 99 \
+      "Attach to tmux session 'main'?"; then
+    exec tmux new-session -A -s main
+  fi
+fi

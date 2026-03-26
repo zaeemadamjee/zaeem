@@ -191,10 +191,12 @@ if ! $CHECK_ONLY; then
   # Run devbox directly — no gum spin wrapper — so Nix gets the real terminal
   # and its native progress bars/cursor-rewriting render correctly.
   # A static pending line is printed first so the user knows what's starting.
-  printf "  \033[2m○\033[0m  devbox global packages \033[2m(first run installs Nix — may take a few minutes)\033[0m\n"
+  printf "  \033[2m○\033[0m  devbox global packages \033[2m(first run installs Nix — may take a few minutes)\033[0m\n\n"
   if devbox global pull "$REPO_ROOT/devbox/devbox.json"; then
+    echo
     ok "devbox global packages  $(gum style --faint "$(_elapsed "$local_t0")")"
   else
+    echo
     fail "devbox global packages  $(gum style --faint "$(_elapsed "$local_t0")")"
     exit 1
   fi
@@ -288,7 +290,7 @@ fi
 # CLI tools
 # ---------------------------------------------------------------------------
 section "CLI tools"
-step --stream "Claude Code (claude)" \
+step --stream "claude code" \
   "command -v claude" \
   "curl -fsSL https://claude.ai/install.sh | bash"
 

@@ -114,17 +114,25 @@ resource "google_compute_instance" "devbox" {
       MARKER="/var/lib/startup-complete"
       [ -f "$MARKER" ] && exit 0
 
-      echo "[startup] Installing system packages..."
-      apt-get update -y
-      apt-get install -y git curl zsh
+      # cloud-init and unattended-upgrades hold the dpkg lock during early boot.
+      # Wait up to 5 minutes for the lock to clear before touching apt.
+      echo "[startup] Waiting for apt lock..."
+      timeout 300 bash -c '
+        while fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; do
+          sleep 2
+        done
+      ' || { echo "[startup] ERROR: apt lock held for >5 min — aborting"; exit 1; }
 
-      echo "[startup] Installing gum (charm.sh)..."
+      echo "[startup] Adding charm.sh apt repo..."
       mkdir -p /etc/apt/keyrings
       curl -fsSL https://repo.charm.sh/apt/gpg.key \
-        | gpg --dearmor -o /etc/apt/keyrings/charm.gpg 2>/dev/null
+        | gpg --dearmor -o /etc/apt/keyrings/charm.gpg
       echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" \
         > /etc/apt/sources.list.d/charm.list
-      apt-get update -qq && apt-get install -y -qq gum
+
+      echo "[startup] Installing system packages..."
+      apt-get update -y
+      apt-get install -y git curl zsh gum
 
       echo "[startup] Ensuring zaeem user exists..."
       if ! id zaeem &>/dev/null; then
