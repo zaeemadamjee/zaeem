@@ -12,6 +12,18 @@ if [[ -n "$SSH_AUTH_SOCK" && "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" ]]; the
 fi
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 
+# --- Welcome screen + tmux attach (SSH login only, not already inside tmux) ---
+# Placed early so exec tmux short-circuits the rest of zshrc on initial SSH login —
+# devbox/starship/etc only need to init inside tmux sessions, not the throwaway
+# pre-tmux shell. PATH is set above so bootstrap --check can find all tools.
+if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ -t 0 ]]; then
+  if [[ -z "${WELCOME_SHOWN:-}" ]]; then
+    [[ -f "$HOME/zaeem_devbox/dotfiles/welcome.sh" ]] && source "$HOME/zaeem_devbox/dotfiles/welcome.sh"
+  else
+    exec tmux new-session -A -s main
+  fi
+fi
+
 # --- History ---
 HISTSIZE=50000
 SAVEHIST=50000
@@ -58,14 +70,3 @@ export OPENCODE_OTLP_ENDPOINT=http://localhost:4317
 # --- zoxide (smart cd) ---
 eval "$(zoxide init zsh)"
 
-# --- Welcome screen + tmux attach (SSH login only, not already inside tmux) ---
-# First login:   welcome.sh runs and ends with a gum confirm to attach tmux.
-# After exec zsh (e.g. post-bootstrap): WELCOME_SHOWN is already exported,
-#   so skip straight to tmux attach without prompting again.
-if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ -t 0 ]]; then
-  if [[ -z "${WELCOME_SHOWN:-}" ]]; then
-    [[ -f "$HOME/zaeem_devbox/dotfiles/welcome.sh" ]] && source "$HOME/zaeem_devbox/dotfiles/welcome.sh"
-  else
-    exec tmux new-session -A -s main
-  fi
-fi
