@@ -67,7 +67,13 @@ export OPENCODE_ENABLE_TELEMETRY=1
 export OPENCODE_OTLP_ENDPOINT=http://localhost:4317
 
 # --- Secrets (copied from local scripts/profiles/<name>.env by start.sh) ---
-[ -f "$HOME/.config/secrets.env" ] && source "$HOME/.config/secrets.env"
+# set -a auto-exports every variable defined during the source so subprocesses
+# (opencode, claude, etc.) inherit them without needing explicit `export` in the file.
+if [ -f "$HOME/.config/secrets.env" ]; then
+  set -a
+  source "$HOME/.config/secrets.env"
+  set +a
+fi
 
 # --- Rust/cargo (env sets CARGO_HOME etc, PATH already includes ~/.cargo/bin above) ---
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
