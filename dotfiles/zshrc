@@ -78,3 +78,6 @@ export OPENCODE_OTLP_ENDPOINT=http://localhost:4317
 # --- zoxide (smart cd) ---
 eval "$(zoxide init zsh)"
 
+# --- atuin (shell history) ---
+command -v atuin &>/dev/null && eval "$(atuin init zsh)"
+

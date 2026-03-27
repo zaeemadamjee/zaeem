@@ -80,6 +80,9 @@ timed_spin() {
 MISSING=()
 track_missing() { MISSING+=("$1"); }
 
+FAILED=()
+track_failed() { FAILED+=("$1"); }
+
 # step [--stream] <label> <check_expr> <install_body>
 #   check_expr   — bash expression evaluated in current shell; exit 0 = already done
 #   install_body — shell command string; skipped in --check mode
@@ -115,11 +118,15 @@ step() {
           printf '\n'
         fi
         rm -f "$_log"
-        return 1
+        track_failed "$label"
       fi
     else
-      gum spin --spinner dot --title "${label}..." -- bash -c "$install"
-      ok "${label}  $(gum style --faint "$(_elapsed "$t0")")"
+      if gum spin --spinner dot --title "${label}..." -- bash -c "$install"; then
+        ok "${label}  $(gum style --faint "$(_elapsed "$t0")")"
+      else
+        fail "${label}  $(gum style --faint "$(_elapsed "$t0")")"
+        track_failed "$label"
+      fi
     fi
   fi
 }
@@ -144,7 +151,7 @@ live_step() {
     else
       echo
       fail "${label}  $(gum style --faint "$(_elapsed "$t0")")"
-      return 1
+      track_failed "$label"
     fi
   fi
 }
@@ -211,9 +218,20 @@ if ! $CHECK_ONLY; then
     echo
     ok "brew bundle  $(gum style --faint "$(_elapsed "$local_t0")")"
   else
+    # On a fresh Homebrew install, gcc can fail because its glibc dependency
+    # hasn't fully linked yet when the first bundle run starts. A single retry
+    # is enough — everything that succeeded is skipped, only failures are retried.
     echo
-    fail "brew bundle  $(gum style --faint "$(_elapsed "$local_t0")")"
-    exit 1
+    warn "brew bundle had failures — retrying once (common on first install)..."
+    echo
+    if brew bundle install --file="$REPO_ROOT/brew/Brewfile"; then
+      echo
+      ok "brew bundle  $(gum style --faint "$(_elapsed "$local_t0")")"
+    else
+      echo
+      fail "brew bundle  $(gum style --faint "$(_elapsed "$local_t0")")"
+      exit 1
+    fi
   fi
 else
   step "Homebrew packages synced" \
@@ -277,8 +295,7 @@ section "Observability"
 # accessible to the systemd service without any PATH workarounds).
 step --stream "otelcol-contrib binary" \
   "command -v otelcol-contrib" \
-  'LATEST=$(curl -fsSL https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases/latest \
-     | grep "\"tag_name\"" | head -1 | sed '"'"'s/.*"tag_name": "v\(.*\)".*/\1/'"'"') \
+  'LATEST=$(curl -fsSL https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases/latest | jq -r .tag_name | sed "s/^v//") \
    && curl -fsSLo /tmp/otelcol.deb \
        "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${LATEST}/otelcol-contrib_${LATEST}_linux_amd64.deb" \
    && sudo dpkg -i /tmp/otelcol.deb \
@@ -324,21 +341,6 @@ step --stream "Docker Engine" \
 step "docker group membership" \
   "id -nG | grep -qw docker" \
   "sudo usermod -aG docker \"\$USER\""
-
-# ---------------------------------------------------------------------------
-# Supabase CLI
-# ---------------------------------------------------------------------------
-section "Supabase CLI"
-
-# Install from the official .deb release on GitHub — installs to /usr/bin/supabase.
-step --stream "supabase CLI" \
-  "command -v supabase" \
-  'LATEST=$(curl -fsSL https://api.github.com/repos/supabase/cli/releases/latest \
-     | grep "\"tag_name\"" | head -1 | sed '"'"'s/.*"tag_name": "\(.*\)".*/\1/'"'"') \
-   && curl -fsSLo /tmp/supabase.deb \
-       "https://github.com/supabase/cli/releases/download/${LATEST}/supabase_${LATEST#v}_linux_amd64.deb" \
-   && sudo dpkg -i /tmp/supabase.deb \
-   && rm /tmp/supabase.deb'
 
 # ---------------------------------------------------------------------------
 # Rust toolchain (rustup is installed via Homebrew but is keg-only)
@@ -459,11 +461,21 @@ if $CHECK_ONLY; then
   fi
 else
   echo
-  gum style --border rounded --padding "1 2" --border-foreground 46 \
-    "$(gum style --foreground 46 --bold '✓  Bootstrap complete')" \
-    "" \
-    "$(gum style --foreground 240 "Completed in ${TOTAL_ELAPSED}.")" \
-    "$(gum style --foreground 240 'Log out and back in for shell changes to take effect.')" \
-    "$(gum style --foreground 240 "You will auto-attach to a tmux session named 'main' on login.")"
+  if [[ ${#FAILED[@]} -eq 0 ]]; then
+    gum style --border rounded --padding "1 2" --border-foreground 46 \
+      "$(gum style --foreground 46 --bold '✓  Bootstrap complete')" \
+      "" \
+      "$(gum style --foreground 240 "Completed in ${TOTAL_ELAPSED}.")" \
+      "$(gum style --foreground 240 'Log out and back in for shell changes to take effect.')" \
+      "$(gum style --foreground 240 "You will auto-attach to a tmux session named 'main' on login.")"
+  else
+    gum style --border rounded --padding "1 2" --border-foreground 214 \
+      "$(gum style --foreground 214 --bold "⚠  Bootstrap complete with ${#FAILED[@]} failure(s)")" \
+      "" \
+      "$(printf '  · %s\n' "${FAILED[@]}")" \
+      "" \
+      "$(gum style --foreground 240 "Completed in ${TOTAL_ELAPSED}.")" \
+      "$(gum style --foreground 240 'Run bootstrap again to retry failed steps.')"
+  fi
   echo
 fi
