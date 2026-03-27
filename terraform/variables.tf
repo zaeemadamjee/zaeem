@@ -65,3 +65,9 @@ variable "static_ip" {
   default     = false
 }
 
+variable "firewall_allow_ports" {
+  description = "Additional TCP ports to open on the VM firewall beyond SSH (22). Source range is 0.0.0.0/0. E.g. [\"3000\", \"8080\", \"443\"]"
+  type        = list(string)
+  default     = []
+}
+

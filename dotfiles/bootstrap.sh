@@ -194,7 +194,7 @@ BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 # Install Homebrew non-interactively. On Linux this also installs its system
 # dependencies (build-essential, procps, etc.) via apt automatically.
 step --stream "Homebrew" \
-  "command -v brew" \
+  "test -x \"${BREW_PREFIX}/bin/brew\"" \
   'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
 
 # Source Homebrew into the current shell — the step above ran in a subshell so
@@ -354,18 +354,15 @@ step "Rust stable toolchain" \
   "rustup default stable"
 
 # ---------------------------------------------------------------------------
-# Node.js (via nvm)
+# Node.js (via nvm — installed by Homebrew above)
 # ---------------------------------------------------------------------------
 section "Node.js"
 
-step "nvm" \
-  "test -s \"\$HOME/.nvm/nvm.sh\"" \
-  "curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/HEAD/install.sh | bash"
-
-# Source nvm into the current shell so subsequent steps can use it.
+# Source nvm into the current shell so the nvm command is available below.
+# nvm itself is installed via Homebrew; its script lives in the Homebrew prefix.
 # shellcheck source=/dev/null
 export NVM_DIR="$HOME/.nvm"
-[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+[[ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ]] && source "${BREW_PREFIX}/opt/nvm/nvm.sh"
 
 step "Node.js 22" \
   "node --version 2>/dev/null | grep -q '^v22'" \

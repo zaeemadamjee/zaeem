@@ -62,6 +62,21 @@ resource "google_compute_firewall" "allow_ssh" {
   target_tags   = ["devbox"]
 }
 
+resource "google_compute_firewall" "allow_ports" {
+  # Only created when the profile specifies extra ports to open.
+  count   = length(var.firewall_allow_ports) > 0 ? 1 : 0
+  name    = "${var.instance_name}-allow-ports"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = var.firewall_allow_ports
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["devbox"]
+}
+
 resource "google_compute_address" "devbox" {
   count  = var.static_ip ? 1 : 0
   name   = "${var.instance_name}-ip"

@@ -77,6 +77,7 @@ load_profile() {
   # Default optional arrays to empty if unset
   SSH_PUBLIC_KEYS=("${SSH_PUBLIC_KEYS[@]+"${SSH_PUBLIC_KEYS[@]}"}")
   REPOS=("${REPOS[@]+"${REPOS[@]}"}")
+  FIREWALL_ALLOW_PORTS=("${FIREWALL_ALLOW_PORTS[@]+"${FIREWALL_ALLOW_PORTS[@]}"}")
 }
 
 # ---------------------------------------------------------------------------
@@ -166,18 +167,22 @@ generate_tfvars() {
   local repos_hcl
   repos_hcl=$(_build_hcl_list "${REPOS[@]+"${REPOS[@]}"}")
 
+  local ports_hcl
+  ports_hcl=$(_build_hcl_list "${FIREWALL_ALLOW_PORTS[@]+"${FIREWALL_ALLOW_PORTS[@]}"}")
+
   cat > "$tmpfile" <<EOF
-project_id         = "${GCP_PROJECT}"
-region             = "${GCP_REGION}"
-zone               = "${GCP_ZONE}"
-instance_name      = "${GCP_INSTANCE_NAME}"
-machine_type       = "${VM_MACHINE_TYPE}"
-disk_size          = ${VM_DISK_SIZE}
-idle_timer_enabled = ${IDLE_TIMER_ENABLED}
-static_ip          = ${STATIC_IP}
-profile_name       = "${PROFILE_NAME}"
-ssh_public_keys    = ${ssh_keys_hcl}
-repos              = ${repos_hcl}
+project_id           = "${GCP_PROJECT}"
+region               = "${GCP_REGION}"
+zone                 = "${GCP_ZONE}"
+instance_name        = "${GCP_INSTANCE_NAME}"
+machine_type         = "${VM_MACHINE_TYPE}"
+disk_size            = ${VM_DISK_SIZE}
+idle_timer_enabled   = ${IDLE_TIMER_ENABLED}
+static_ip            = ${STATIC_IP}
+profile_name         = "${PROFILE_NAME}"
+ssh_public_keys      = ${ssh_keys_hcl}
+repos                = ${repos_hcl}
+firewall_allow_ports = ${ports_hcl}
 EOF
 }
 

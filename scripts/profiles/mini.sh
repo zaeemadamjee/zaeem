@@ -25,6 +25,12 @@ SSH_PUBLIC_KEYS=(
   # "ssh-ed25519 AAAA... zaeem@machine2"
 )
 
+# --- Firewall: extra TCP ports to open (beyond SSH/22) ---
+# Examples: "3000" (dev server), "8080" (proxy), "5432" (postgres)
+FIREWALL_ALLOW_PORTS=(
+  # "3000"
+)
+
 # --- Repos to clone into ~/workspace on first login ---
 REPOS=(
   "git@github.com:zaeemadamjee/travel_agent.git"
