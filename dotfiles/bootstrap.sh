@@ -270,7 +270,7 @@ symlink_step() {
 }
 
 if ! $CHECK_ONLY; then
-  mkdir -p "$HOME/.config" "$HOME/.config/opencode"
+  mkdir -p "$HOME/.config" "$HOME/.config/opencode" "$HOME/.claude"
 fi
 
 step "~/.hushlogin (suppress Ubuntu MOTD)" \
@@ -284,6 +284,7 @@ symlink_step "~/.gitconfig"                      "$DOTFILES_DIR/gitconfig"      
 symlink_step "~/.config/nvim"                    "$DOTFILES_DIR/nvim"                         "$HOME/.config/nvim" "-T"
 symlink_step "~/.config/starship.toml"           "$DOTFILES_DIR/starship.toml"                "$HOME/.config/starship.toml"
 symlink_step "~/.config/opencode/opencode.json"  "$DOTFILES_DIR/opencode/opencode.json"       "$HOME/.config/opencode/opencode.json"
+symlink_step "~/.claude/settings.json"           "$DOTFILES_DIR/claude/settings.json"         "$HOME/.claude/settings.json"
 
 # ---------------------------------------------------------------------------
 # Observability (otelcol-contrib)
