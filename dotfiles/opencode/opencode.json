@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@devtheops/opencode-plugin-otel", "opencode-scheduler"],
+  "plugin": ["@devtheops/opencode-plugin-otel", "opencode-scheduler", "./pushover-notify.js"],
   "mcp": {
     "notion": {
       "type": "remote",
@@ -16,5 +16,10 @@
     "read": {
       "*": "allow"
     }
+  },
+  "server": {
+    "port": 4096,
+    "hostname": "0.0.0.0",
+    "mdns": true
   }
 }
