@@ -31,23 +31,6 @@ locals {
   zone = var.zone != "" ? var.zone : data.google_compute_zones.available.names[0]
 }
 
-resource "google_service_account" "otelcol" {
-  account_id   = "otelcol-exporter"
-  display_name = "OTel Collector Exporter"
-}
-
-resource "google_project_iam_member" "otelcol_metrics" {
-  project = var.project_id
-  role    = "roles/monitoring.metricWriter"
-  member  = "serviceAccount:${google_service_account.otelcol.email}"
-}
-
-resource "google_project_iam_member" "otelcol_logs" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
-  member  = "serviceAccount:${google_service_account.otelcol.email}"
-}
-
 
 resource "google_compute_firewall" "allow_ssh" {
   name    = "devbox-allow-ssh"
@@ -104,11 +87,6 @@ resource "google_compute_instance" "devbox" {
       # nat_ip = null → ephemeral IP; set to reserved address when static_ip = true
       nat_ip = var.static_ip ? google_compute_address.devbox[0].address : null
     }
-  }
-
-  service_account {
-    email  = google_service_account.otelcol.email
-    scopes = ["cloud-platform"]
   }
 
   metadata = {

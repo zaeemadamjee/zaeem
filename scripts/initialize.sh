@@ -127,18 +127,6 @@ setup_tfvars
 cd "$TERRAFORM_DIR"
 
 # Import pre-existing shared resources so Terraform doesn't try to recreate them.
-SA_EMAIL="otelcol-exporter@${GCP_PROJECT}.iam.gserviceaccount.com"
-if gcloud iam service-accounts describe "$SA_EMAIL" --project="$GCP_PROJECT" &>/dev/null; then
-  if ! terraform state show google_service_account.otelcol &>/dev/null; then
-    gum spin --spinner dot --title "Importing existing service account..." -- \
-      terraform import -var-file="$TMPVARS" \
-        google_service_account.otelcol \
-        "projects/${GCP_PROJECT}/serviceAccounts/${SA_EMAIL}"
-    ok "Service account imported"
-  else
-    skip "Service account already in state"
-  fi
-fi
 
 if gcloud compute firewall-rules describe "devbox-allow-ssh" --project="$GCP_PROJECT" &>/dev/null 2>&1; then
   if ! terraform state show google_compute_firewall.allow_ssh &>/dev/null; then

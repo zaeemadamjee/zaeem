@@ -34,7 +34,7 @@ On first interactive login (via the stub ~/.zshrc)
 bootstrap.sh (idempotent, re-runnable)
   → installs devbox + pulls global packages
   → symlinks all dotfiles
-  → installs TPM, otelcol, idle timer, Claude Code, opencode
+  → installs TPM, idle timer, Claude Code, opencode
   → symlinks real ~/.zshrc — subsequent logins skip the welcome screen
 ```
 

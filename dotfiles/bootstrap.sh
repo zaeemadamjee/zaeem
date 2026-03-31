@@ -288,26 +288,6 @@ symlink_step "~/.config/opencode/pushover-notify.js"  "$DOTFILES_DIR/opencode/pu
 symlink_step "~/.claude/settings.json"           "$DOTFILES_DIR/claude/settings.json"         "$HOME/.claude/settings.json"
 
 # ---------------------------------------------------------------------------
-# Observability (otelcol-contrib)
-# ---------------------------------------------------------------------------
-section "Observability"
-
-# Not available in Homebrew on Linux — install via official .deb release.
-# The .deb puts the binary at /usr/bin/otelcol-contrib (stable system path,
-# accessible to the systemd service without any PATH workarounds).
-step --stream "otelcol-contrib binary" \
-  "command -v otelcol-contrib" \
-  'LATEST=$(curl -fsSL https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases/latest | jq -r .tag_name | sed "s/^v//") \
-   && curl -fsSLo /tmp/otelcol.deb \
-       "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${LATEST}/otelcol-contrib_${LATEST}_linux_amd64.deb" \
-   && sudo dpkg -i /tmp/otelcol.deb \
-   && rm /tmp/otelcol.deb'
-
-step "otelcol-contrib systemd service" \
-  "systemctl is-enabled otelcol-contrib &>/dev/null" \
-  "sudo mkdir -p /etc/otelcol-contrib && sudo cp \"\$DOTFILES_DIR/otelcol-contrib-config.yaml\" /etc/otelcol-contrib/config.yaml && sudo cp \"\$DOTFILES_DIR/otelcol-contrib.service\" /etc/systemd/system/otelcol-contrib.service && sudo systemctl daemon-reload && sudo systemctl enable --now otelcol-contrib"
-
-# ---------------------------------------------------------------------------
 # Idle timer
 # ---------------------------------------------------------------------------
 section "Idle timer"
