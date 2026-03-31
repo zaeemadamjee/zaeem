@@ -65,12 +65,67 @@ _poll_ssh() {
 }
 export -f _poll_ssh
 
+# Runs after a failed SSH poll to surface the most likely root cause.
+_diagnose_ssh_failure() {
+  local instance="$1" zone="$2" project="$3" user="$4" key="$5"
+  echo
+  gum style --bold --foreground 214 "  ▸  SSH Diagnostics"
+  echo
+
+  # VM status
+  local status
+  status=$(gcloud compute instances describe "$instance" \
+    --zone="$zone" --project="$project" \
+    --format="value(status)" 2>/dev/null || echo "unknown")
+  if [[ "$status" == "RUNNING" ]]; then
+    ok "VM status: RUNNING  $(gum style --faint "(sshd not ready, wrong key, or firewall block)")"
+  else
+    warn "VM status: $status — expected RUNNING"
+  fi
+
+  # External IP
+  local ip
+  ip=$(gcloud compute instances describe "$instance" \
+    --zone="$zone" --project="$project" \
+    --format="get(networkInterfaces[0].accessConfigs[0].natIP)" 2>/dev/null || true)
+  if [[ -z "$ip" ]]; then
+    warn "No external IP — the VM has no natIP; check accessConfig in Terraform"
+    return
+  fi
+  ok "External IP: $ip"
+
+  # Verbose SSH attempt — grep for the lines that explain the failure
+  echo
+  warn "SSH connection attempt (verbose output):"
+  echo
+  ssh -vvv -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+    -o BatchMode=yes -i "$key" "${user}@${ip}" true 2>&1 \
+    | grep -E "(Connecting to|connect to address|Permission denied|Connection refused|Connection timed out|Received disconnect|Host key|debug1: Authentications)" \
+    | head -15 \
+    | while IFS= read -r line; do
+        printf "    \033[2m%s\033[0m\n" "$line"
+      done
+  echo
+
+  # Serial console tail — shows OS boot and sshd startup errors
+  warn "Serial console — last 20 lines:"
+  echo
+  gcloud compute instances get-serial-port-output "$instance" \
+    --zone="$zone" --project="$project" 2>/dev/null \
+    | tail -20 \
+    | while IFS= read -r line; do
+        printf "    \033[2m%s\033[0m\n" "$line"
+      done
+  echo
+}
+
 IP_FILE=$(mktemp)
 trap 'rm -f "$IP_FILE"' EXIT
 
 if ! gum spin --spinner dot --title "Waiting for SSH (up to 2.5 min)..." -- \
      bash -c "_poll_ssh '$GCP_INSTANCE_NAME' '$GCP_ZONE' '$GCP_PROJECT' '$SSH_USER' '$SSH_KEY' '$IP_FILE'"; then
   fail "Could not reach VM over SSH after 30 attempts"
+  _diagnose_ssh_failure "$GCP_INSTANCE_NAME" "$GCP_ZONE" "$GCP_PROJECT" "$SSH_USER" "$SSH_KEY"
   exit 1
 fi
 IP=$(cat "$IP_FILE")

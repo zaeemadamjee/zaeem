@@ -129,6 +129,27 @@ resource "google_compute_instance" "devbox" {
       MARKER="/var/lib/startup-complete"
       [ -f "$MARKER" ] && exit 0
 
+      # Create the zaeem user and inject SSH keys immediately — before apt or
+      # anything else — so that sshd can authenticate as soon as it is up.
+      # The google-guest-agent injects keys on a ~30s sync cycle which may
+      # race with the SSH readiness poll; writing authorized_keys directly
+      # here removes that dependency entirely.
+      echo "[startup] Creating zaeem user and installing SSH keys..."
+      if ! id zaeem &>/dev/null; then
+        useradd -m -s /bin/bash zaeem
+      fi
+      echo "zaeem ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/zaeem
+      chmod 440 /etc/sudoers.d/zaeem
+
+      mkdir -p /home/zaeem/.ssh
+      chmod 700 /home/zaeem/.ssh
+      # Pull authorized keys from instance metadata (format: "zaeem:<pubkey>\n...")
+      curl -sf -H "Metadata-Flavor: Google" \
+        "http://metadata.google.internal/computeMetadata/v1/instance/attributes/ssh-keys" \
+        | sed 's/^zaeem://' > /home/zaeem/.ssh/authorized_keys || true
+      chmod 600 /home/zaeem/.ssh/authorized_keys
+      chown -R zaeem:zaeem /home/zaeem/.ssh
+
       # cloud-init and unattended-upgrades hold the dpkg lock during early boot.
       # Wait up to 5 minutes for the lock to clear before touching apt.
       echo "[startup] Waiting for apt lock..."
@@ -148,13 +169,6 @@ resource "google_compute_instance" "devbox" {
       echo "[startup] Installing system packages..."
       apt-get update -y
       apt-get install -y git curl zsh gum
-
-      echo "[startup] Ensuring zaeem user exists..."
-      if ! id zaeem &>/dev/null; then
-        useradd -m -s /bin/bash zaeem
-      fi
-      echo "zaeem ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/zaeem
-      chmod 440 /etc/sudoers.d/zaeem
 
       echo "[startup] Suppressing Ubuntu MOTD..."
       touch /home/zaeem/.hushlogin
