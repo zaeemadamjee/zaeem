@@ -14,13 +14,14 @@ const pending = new Map()
 let webUrlPromise = null
 
 /**
- * Resolve the opencode web UI URL using Tailscale MagicDNS, swapping in the
- * Tailscale hostname while preserving the port from the live serverUrl.
+ * Resolve the opencode web UI base URL using Tailscale MagicDNS, swapping in
+ * the Tailscale hostname while preserving the port from the live serverUrl.
  *
  * serverUrl is provided by the opencode plugin SDK and contains the actual
- * port that this instance bound to (random when no port is pinned in config).
+ * port that this instance bound to. It must be passed on the first call to
+ * capture the port; subsequent calls return the cached promise.
  *
- * Fallback chain: tailscale Self.DNSName → TAILSCALE_HOSTNAME env var → serverUrl as-is
+ * Fallback chain: tailscale Self.DNSName → TAILSCALE_HOSTNAME env var → localhost
  */
 function resolveWebUrl(serverUrl) {
   if (webUrlPromise) return webUrlPromise
@@ -34,18 +35,35 @@ function resolveWebUrl(serverUrl) {
     .then(({ stdout }) => {
       const status = JSON.parse(stdout)
       const dnsName = status?.Self?.DNSName?.replace(/\.$/, "") // strip trailing dot
-      if (dnsName) {
-        return `http://${dnsName}:${port}`
-      }
+      if (dnsName) return `http://${dnsName}:${port}`
       throw new Error("No DNSName in tailscale status")
     })
     .catch(() => {
       const envHost = process.env.TAILSCALE_HOSTNAME
       if (envHost) return `http://${envHost}:${port}`
-      return serverUrl ?? `http://localhost:${port}`
+      // Never return serverUrl directly — its host is 0.0.0.0 (bind address)
+      return `http://localhost:${port}`
     })
 
   return webUrlPromise
+}
+
+/**
+ * Build a deep-link URL that opens the web UI directly to a specific session.
+ * Format: <base>/<base64url(directory)>/session/<sessionID>
+ *
+ * opencode encodes the directory using URL-safe base64 (RFC 4648 §5):
+ *   btoa(utf8 bytes) → replace + with -, / with _, strip = padding
+ * Node's "base64url" encoding is exactly this, so we use it directly.
+ * Source: packages/util/src/encode.ts in the opencode repo.
+ *
+ * Falls back to the base URL when directory or sessionID are unavailable.
+ */
+async function resolveSessionUrl(serverUrl, directory, sessionID) {
+  const base = await resolveWebUrl(serverUrl)
+  if (!directory || !sessionID) return base
+  const dirSegment = Buffer.from(directory).toString("base64url")
+  return `${base}/${dirSegment}/session/${sessionID}`
 }
 
 function clearPending(sessionID) {
@@ -114,9 +132,9 @@ async function flush() {
 
 /**
  * Enrich a notification with session context: project name, elapsed time,
- * last assistant text, subagent detection, and web URL.
+ * last assistant text, subagent detection, and a deep-link web URL.
  */
-async function buildNotification(client, directory, sessionID, eventType, fallbackMessage) {
+async function buildNotification(client, directory, sessionID, eventType, fallbackMessage, serverUrl) {
   const projectName = directory ? path.basename(directory) : "opencode"
 
   let elapsedSeconds = null
@@ -172,7 +190,7 @@ async function buildNotification(client, directory, sessionID, eventType, fallba
     message += ` (${m}m ${s}s)`
   }
 
-  const url = await resolveWebUrl(null)
+  const url = await resolveSessionUrl(serverUrl, directory, sessionID)
 
   return { title, message, resolvedType, url }
 }
@@ -209,16 +227,16 @@ export const PushoverNotifyPlugin = async (input) => {
       const sessionID = event.properties?.sessionID ?? null
 
       if (event.type === "session.idle") {
-        const { title, message, resolvedType, url } = await buildNotification(client, directory, sessionID, "complete")
+        const { title, message, resolvedType, url } = await buildNotification(client, directory, sessionID, "complete", undefined, serverUrl)
         if (resolvedType === "subagent_complete") return // skip subagent completions
         dispatch(sessionID, title, message, url)
       } else if (event.type === "session.error") {
         const rawError = event.properties?.error
         const errorMessage = rawError?.data?.message ?? rawError?.name ?? "Unknown error"
-        const { title, message, url } = await buildNotification(client, directory, sessionID, "error", errorMessage)
+        const { title, message, url } = await buildNotification(client, directory, sessionID, "error", errorMessage, serverUrl)
         dispatch(sessionID, title, message, url)
       } else if (event.type === "permission.updated") {
-        const { title, message, url } = await buildNotification(client, directory, sessionID, "permission")
+        const { title, message, url } = await buildNotification(client, directory, sessionID, "permission", undefined, serverUrl)
         dispatch(sessionID, title, message, url)
       }
     } catch (err) {
@@ -229,7 +247,7 @@ export const PushoverNotifyPlugin = async (input) => {
   async function permissionAskHook(hookInput) {
     try {
       const sessionID = hookInput?.sessionID ?? null
-      const { title, message, url } = await buildNotification(client, directory, sessionID, "permission")
+      const { title, message, url } = await buildNotification(client, directory, sessionID, "permission", undefined, serverUrl)
       dispatch(sessionID, title, message, url)
     } catch (err) {
       console.error(`[opencode-notify] Permission.ask hook error: ${err}`)
@@ -240,7 +258,7 @@ export const PushoverNotifyPlugin = async (input) => {
     try {
       if (hookInput?.tool === "question") {
         const sessionID = hookInput?.sessionID ?? null
-        const { title, message, url } = await buildNotification(client, directory, sessionID, "question")
+        const { title, message, url } = await buildNotification(client, directory, sessionID, "question", undefined, serverUrl)
         dispatch(sessionID, title, message, url)
       }
     } catch (err) {
