@@ -24,7 +24,8 @@ DEVBOX_BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$DEVBOX_BIN_DIR/../.." && pwd)"
 CONFIG_DIR="$REPO_ROOT/config"
 DEVBOX_DIR="$REPO_ROOT/devbox"
-export DEVBOX_BIN_DIR REPO_ROOT CONFIG_DIR DEVBOX_DIR
+BREW_PREFIX="/home/linuxbrew/.linuxbrew"
+export DEVBOX_BIN_DIR REPO_ROOT CONFIG_DIR DEVBOX_DIR BREW_PREFIX
 
 # shellcheck source=../../lib/log.sh
 source "$REPO_ROOT/lib/log.sh"
@@ -81,8 +82,6 @@ _track_failed() { FAILED+=("$1"); }
 cmd_install() {
   log_section "Homebrew"
 
-  export BREW_PREFIX="/home/linuxbrew/.linuxbrew"
-
   if [[ ! -x "${BREW_PREFIX}/bin/brew" ]]; then
     log_info "Installing Homebrew (this takes a minute)..."
     local _brew_log
@@ -134,17 +133,25 @@ cmd_link() {
   local packages="aliases atuin claude git ghostty nvim opencode starship tmux zsh"
   local stow="${BREW_PREFIX}/bin/stow"
 
+  # Stow can only replace symlinks it owns; plain files (e.g. the Terraform-written
+  # .zshrc stub, or lines appended by tool installers) cause silent conflicts.
+  # Remove any plain-file targets for files that belong to our stow packages.
   for pkg in $packages; do
-    if "$stow" -d "$CONFIG_DIR" -n "$pkg" -t "$HOME" 2>/dev/null; then
-      log_info "Linking $pkg..."
-      "$stow" -d "$CONFIG_DIR" "$pkg" -t "$HOME" --restow \
-        || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
-    else
-      log_info "$pkg: already linked"
-    fi
+    while IFS= read -r src_file; do
+      local rel_path="${src_file#"$CONFIG_DIR/$pkg/"}"
+      local target="$HOME/$rel_path"
+      if [[ -f "$target" ]] && [[ ! -L "$target" ]]; then
+        log_info "Removing pre-existing plain file: ~/${rel_path}"
+        rm -f "$target"
+      fi
+    done < <(find "$CONFIG_DIR/$pkg" -mindepth 1 -maxdepth 3 -type f 2>/dev/null)
   done
 
-  log_ok "Dotfiles linked"
+  for pkg in $packages; do
+    "$stow" -d "$CONFIG_DIR" "$pkg" -t "$HOME" --restow \
+      && log_ok "$pkg" \
+      || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
+  done
 }
 
 cmd_langs() {

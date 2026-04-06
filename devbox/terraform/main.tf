@@ -146,7 +146,7 @@ resource "google_compute_instance" "devbox" {
 
       echo "[startup] Installing system packages..."
       apt-get update -y
-      apt-get install -y git curl zsh gum
+      apt-get install -y git curl zsh
 
       echo "[startup] Suppressing Ubuntu MOTD..."
       touch /home/zaeem/.hushlogin
@@ -189,13 +189,13 @@ if [[ ! -f "$HOME/.bootstrap-complete" ]]; then
   if [[ ! -d "$REPO" ]]; then
     if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then
       echo ""
-      echo "  ⚠  SSH agent required to clone zaeem_devbox."
-      echo "     Load your key locally:  ssh-add ~/.ssh/zaeem_devbox"
-      echo "     Then reconnect."
+      echo "  SSH agent required to clone zaeem_devbox."
+      echo "  Load your key locally:  ssh-add ~/.ssh/zaeem_devbox"
+      echo "  Then reconnect with:    ssh -A <devbox>"
       echo ""
     else
-      gum spin --spinner dot --title "  Cloning zaeem_devbox..." -- \
-        timeout 60 git clone git@github.com:zaeemadamjee/zaeem_devbox.git "$REPO"
+      echo "  Cloning zaeem_devbox..."
+      timeout 60 git clone git@github.com:zaeemadamjee/zaeem_devbox.git "$REPO"
     fi
   fi
   [[ -f "$REPO/devbox/bin/welcome" ]] && source "$REPO/devbox/bin/welcome"
