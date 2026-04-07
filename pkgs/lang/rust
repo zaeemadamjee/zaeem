@@ -10,13 +10,19 @@ else
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 fi
 
-# Ensure a default toolchain is set before sourcing .cargo/env (required on first run)
+# Ensure a default toolchain is set (required on first run).
 if ! rustup toolchain list 2>/dev/null | grep -q stable; then
   log_info "Setting Rust default toolchain to stable..."
   rustup default stable
 fi
 
-. "$HOME/.cargo/env"
+# ~/.cargo/env is created by the standalone rustup installer but not by Homebrew.
+# Source it when present; otherwise add ~/.cargo/bin to PATH directly.
+if [[ -f "$HOME/.cargo/env" ]]; then
+  . "$HOME/.cargo/env"
+else
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
 
 log_ok "Rust $(rustc --version | cut -d' ' -f2)"
 log_dim "Cargo $(cargo --version | cut -d' ' -f2)"
