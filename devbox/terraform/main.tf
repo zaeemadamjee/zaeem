@@ -146,7 +146,7 @@ resource "google_compute_instance" "devbox" {
 
       echo "[startup] Installing system packages..."
       apt-get update -y
-      apt-get install -y git curl zsh
+      apt-get install -y git curl zsh neofetch
 
       echo "[startup] Suppressing Ubuntu MOTD..."
       touch /home/zaeem/.hushlogin

@@ -64,24 +64,33 @@ _track_failed() { FAILED+=("$1"); }
 # Commands
 # ---------------------------------------------------------------------------
 
+_tap_from_file() {
+  local file="$1"
+  [[ -f "$file" ]] || return 0
+  while IFS= read -r tap || [[ -n "$tap" ]]; do
+    [[ -z "$tap" || "$tap" =~ ^# ]] && continue
+    log_dim "Tapping $tap..."
+    brew tap "$tap" </dev/null || log_warn "Failed to tap $tap"
+  done <"$file"
+}
+
+_install_from_file() {
+  local file="$1" flag="${2:-}"
+  [[ -f "$file" ]] || { log_error "File not found: $file"; return 1; }
+  while IFS= read -r pkg || [[ -n "$pkg" ]]; do
+    [[ -z "$pkg" || "$pkg" =~ ^# ]] && continue
+    log_dim "Installing $pkg..."
+    # shellcheck disable=SC2086
+    brew install $flag "$pkg" </dev/null \
+      || { log_warn "Failed to install $pkg"; _track_failed "brew $pkg"; }
+  done <"$file"
+}
+
 cmd_install() {
   log_section "Homebrew packages"
-
-  if brew bundle check --file="$REPO_ROOT/pkgs/Brewfile" &>/dev/null; then
-    log_info "All packages already installed"
-  else
-    log_info "Running brew bundle (first run may take several minutes)..."
-    if ! brew bundle install --file="$REPO_ROOT/pkgs/Brewfile"; then
-      log_warn "brew bundle had failures — retrying once..."
-      if ! brew bundle install --file="$REPO_ROOT/pkgs/Brewfile"; then
-        log_error "brew bundle failed after retry"
-        _track_failed "brew bundle"
-        return
-      fi
-    fi
-    log_ok "brew bundle"
-  fi
-
+  _tap_from_file     "$REPO_ROOT/pkgs/brew/taps"
+  _install_from_file "$REPO_ROOT/pkgs/brew/essentials"
+  _install_from_file "$REPO_ROOT/pkgs/brew/casks" --cask
   export PATH="${BREW_PREFIX}/bin:$PATH"
 }
 
@@ -273,8 +282,8 @@ cmd_check() {
     && _chk "Homebrew" ok || _chk "Homebrew" fail
 
   log_section "Homebrew packages"
-  brew bundle check --file="$REPO_ROOT/pkgs/Brewfile" &>/dev/null \
-    && _chk "brew bundle" ok || _chk "brew bundle" fail
+  command -v brew &>/dev/null \
+    && _chk "brew" ok || _chk "brew" fail
 
   log_section "Dotfiles"
   local stow="${BREW_PREFIX}/bin/stow"

@@ -1,0 +1,50 @@
+# Version control
+git
+gh
+lazygit
+tig
+git-delta
+
+# Shell & multiplexer
+tmux
+stow
+
+# Language managers (runtimes installed by pkgs/lang/* scripts)
+rustup
+nvm
+
+# Core CLI utilities
+ripgrep
+fzf
+jq
+curl
+wget
+tree
+unzip
+make
+gcc
+vim
+neovim
+
+# Modern CLI replacements
+bat
+eza
+btop
+
+# Navigation & file management
+zoxide
+yazi
+
+# Dev utilities
+fx
+glow
+zellij
+
+# Prompt & shell history
+starship
+atuin
+neofetch
+
+# Cloud
+hashicorp/tap/terraform
+anomalyco/tap/opencode
