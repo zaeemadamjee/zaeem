@@ -93,14 +93,23 @@ cmd_link() {
   local packages="aliases atuin claude git ghostty nvim opencode starship tmux"
   local stow="${BREW_PREFIX}/bin/stow"
 
-  # Back up any plain files that would block stow. Stow can only replace
-  # symlinks it owns; plain files (existing configs, tool-installer appends, etc.)
-  # cause silent failures. We back them up so the user can review old contents.
+  # Remove or back up plain files that would block stow.
+  # Stow can only replace symlinks it owns — plain files cause silent failures.
   for pkg in $packages; do
     while IFS= read -r src_file; do
       local rel_path="${src_file#"$CONFIG_DIR/$pkg/"}"
       local target="$HOME/$rel_path"
-      if [[ -f "$target" ]] && [[ ! -L "$target" ]]; then
+      [[ -f "$target" ]] && [[ ! -L "$target" ]] || continue
+      # Skip if the file resolves into our config dir — it's already managed
+      # via a stow directory symlink and is not a real user file.
+      local _real
+      _real="$(realpath "$target" 2>/dev/null || true)"
+      [[ "$_real" == "$CONFIG_DIR"* ]] && continue
+      if diff -q "$src_file" "$target" &>/dev/null; then
+        # Identical to repo — nothing to preserve, just remove.
+        rm -f "$target"
+      else
+        # Different content — user may have customisations; back up.
         log_info "Backing up ~/${rel_path} → ~/${rel_path}.bak"
         mv "$target" "${target}.bak"
       fi

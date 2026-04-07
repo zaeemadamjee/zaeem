@@ -133,17 +133,19 @@ cmd_link() {
   local packages="aliases atuin claude git ghostty nvim opencode starship tmux zsh"
   local stow="${BREW_PREFIX}/bin/stow"
 
-  # Stow can only replace symlinks it owns; plain files (e.g. the Terraform-written
-  # .zshrc stub, or lines appended by tool installers) cause silent conflicts.
-  # Remove any plain-file targets for files that belong to our stow packages.
+  # Remove plain files that would block stow (e.g. the Terraform .zshrc stub,
+  # or lines appended by tool installers). Stow can only replace its own symlinks.
   for pkg in $packages; do
     while IFS= read -r src_file; do
       local rel_path="${src_file#"$CONFIG_DIR/$pkg/"}"
       local target="$HOME/$rel_path"
-      if [[ -f "$target" ]] && [[ ! -L "$target" ]]; then
-        log_info "Removing pre-existing plain file: ~/${rel_path}"
-        rm -f "$target"
-      fi
+      [[ -f "$target" ]] && [[ ! -L "$target" ]] || continue
+      # Skip if the file resolves into our config dir — it's already managed
+      # via a stow directory symlink and is not a pre-bootstrap stub.
+      local _real
+      _real="$(realpath "$target" 2>/dev/null || true)"
+      [[ "$_real" == "$CONFIG_DIR"* ]] && continue
+      rm -f "$target"
     done < <(find "$CONFIG_DIR/$pkg" -mindepth 1 -maxdepth 3 -type f 2>/dev/null)
   done
 
