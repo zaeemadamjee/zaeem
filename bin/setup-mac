@@ -93,27 +93,36 @@ cmd_link() {
   local packages="aliases atuin claude git ghostty nvim opencode starship tmux"
   local stow="${BREW_PREFIX}/bin/stow"
 
-  # Remove or back up plain files that would block stow.
-  # Stow can only replace symlinks it owns — plain files cause silent failures.
+  # Remove or back up targets that would block stow.
+  # Handles: (1) stale symlinks pointing to a different/old repo location,
+  # (2) plain files that differ from the repo copy.
   for pkg in $packages; do
-    while IFS= read -r src_file; do
-      local rel_path="${src_file#"$CONFIG_DIR/$pkg/"}"
-      local target="$HOME/$rel_path"
-      [[ -f "$target" ]] && [[ ! -L "$target" ]] || continue
-      # Skip if the file resolves into our config dir — it's already managed
-      # via a stow directory symlink and is not a real user file.
-      local _real
-      _real="$(realpath "$target" 2>/dev/null || true)"
-      [[ "$_real" == "$CONFIG_DIR"* ]] && continue
-      if diff -q "$src_file" "$target" &>/dev/null; then
+    while IFS= read -r src; do
+      local rel="${src#"$CONFIG_DIR/$pkg/"}"
+      local target="$HOME/$rel"
+
+      if [[ -L "$target" ]]; then
+        # Symlink already exists — skip if stow owns it (points into our config dir).
+        local _real
+        _real="$(realpath "$target" 2>/dev/null || true)"
+        [[ "$_real" == "$CONFIG_DIR"* ]] && continue
+        # Stale symlink from a previous/different repo location — remove it so
+        # stow can recreate it pointing to the current config dir.
+        rm -f "$target"
+        continue
+      fi
+
+      # Only handle plain files below (leave real directories for stow to traverse).
+      [[ -f "$target" ]] || continue
+      if diff -q "$src" "$target" &>/dev/null; then
         # Identical to repo — nothing to preserve, just remove.
         rm -f "$target"
       else
         # Different content — user may have customisations; back up.
-        log_info "Backing up ~/${rel_path} → ~/${rel_path}.bak"
+        log_info "Backing up ~/${rel} → ~/${rel}.bak"
         mv "$target" "${target}.bak"
       fi
-    done < <(find "$CONFIG_DIR/$pkg" -mindepth 1 -type f 2>/dev/null)
+    done < <(find "$CONFIG_DIR/$pkg" -mindepth 1 2>/dev/null)
   done
 
   for pkg in $packages; do
@@ -335,6 +344,7 @@ cmd_check() {
 
 cmd_all() {
   log_banner "setup-mac"
+  _setup_ssh
   cmd_install
   cmd_link
   cmd_shell
@@ -361,6 +371,46 @@ cmd_help() {
     help     Show this message
 
 EOF
+}
+
+_setup_ssh() {
+  log_section "SSH keys"
+
+  local ssh_dir="$HOME/.ssh"
+  local vault_dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Vault"
+  local config_file="$ssh_dir/config"
+
+  mkdir -p "$ssh_dir"
+
+  if [[ -f "$ssh_dir/id_ed25519" ]]; then
+    log_info "SSH keys already exist"
+  else
+    if [[ -f "$vault_dir/id_ed25519" ]]; then
+      cp "$vault_dir/id_ed25519"     "$ssh_dir/id_ed25519"
+      cp "$vault_dir/id_ed25519.pub" "$ssh_dir/id_ed25519.pub"
+      chmod 600 "$ssh_dir/id_ed25519"
+      chmod 644 "$ssh_dir/id_ed25519.pub"
+      log_ok "SSH keys copied from iCloud vault"
+    else
+      log_info "iCloud vault not found — skipping SSH key setup"
+      log_dim "Expected: $vault_dir"
+      return 0
+    fi
+  fi
+
+  if ! grep -q "UseKeychain yes" "$config_file" 2>/dev/null; then
+    cat >> "$config_file" <<EOF
+
+Host *
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+EOF
+    chmod 600 "$config_file"
+    log_info "SSH config updated (Apple Keychain)"
+  fi
+
+  ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
 }
 
 _summary() {

@@ -71,14 +71,21 @@ brew "neofetch"        # system info on login
 # ---------------------------------------------------------------------------
 # Cloud
 # ---------------------------------------------------------------------------
-# macOS: cask is the official recommended install.
-# Linux: Linuxbrew has no cask support; use Google's tap formula instead.
+# macOS: official Homebrew cask.
+# Linux (devbox): installed via apt in devbox/bin/bootstrap cmd_install.
 if OS.mac?
-  cask "google-cloud-sdk"
-else
-  tap "google/cloud-sdk"
-  brew "google-cloud-sdk"
+  cask "gcloud-cli"
 end
 
 tap "hashicorp/tap"
 brew "hashicorp/tap/terraform"
+
+# ---------------------------------------------------------------------------
+# GUI apps (macOS only)
+# ---------------------------------------------------------------------------
+if OS.mac?
+  brew "sf-symbols"          # icon font used by menu bar / status bar apps
+  cask "ghostty"             # terminal emulator
+  cask "claude"              # Claude desktop app
+  cask "claude-code"         # Claude Code CLI (managed install)
+end

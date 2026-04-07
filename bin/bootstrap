@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#
+# Bootstrap a fresh macOS machine.
+# Usage: curl -fsSL https://raw.githubusercontent.com/zaeemadamjee/zaeem/main/bin/bootstrap | bash
+#
+set -euo pipefail
+
+REPO_URL="https://github.com/zaeemadamjee/zaeem.git"
+SSH_URL="git@github.com:zaeemadamjee/zaeem.git"
+DOTFILES="${DOTFILES:-$HOME/workspace/zaeem}"
+
+# ---------------------------------------------------------------------------
+# Inline logging — runs before lib/log.sh is available (repo not cloned yet)
+# ---------------------------------------------------------------------------
+
+if [[ -t 1 ]]; then
+  _LOG_GREEN='\033[32m'
+  _LOG_DIM='\033[2m'
+  _LOG_RESET='\033[0m'
+else
+  _LOG_GREEN=''
+  _LOG_DIM=''
+  _LOG_RESET=''
+fi
+
+log_banner()  { echo ""; echo "─── $1 ───"; echo ""; }
+log_section() { echo ""; echo "▸ $1"; }
+log_info()    { echo "  $1"; }
+log_ok()      { echo -e "  ${_LOG_GREEN}✓${_LOG_RESET} $1"; }
+log_dim()     { echo -e "  ${_LOG_DIM}$1${_LOG_RESET}"; }
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+log_banner "zaeem bootstrap"
+
+log_section "Xcode CLI tools"
+if xcode-select -p &>/dev/null; then
+  log_info "Already installed"
+else
+  log_info "Installing..."
+  xcode-select --install
+  log_dim "A dialog should appear — click Install to proceed"
+  until xcode-select -p &>/dev/null; do sleep 5; done
+  log_ok "Installed"
+fi
+
+log_section "Cloning dotfiles"
+mkdir -p "$(dirname "$DOTFILES")"
+if [[ -d "$DOTFILES" ]]; then
+  log_info "Repo exists at $DOTFILES"
+  log_info "Pulling latest..."
+  if git -C "$DOTFILES" pull --ff-only 2>/dev/null; then
+    log_ok "Up to date"
+  else
+    log_dim "Already up to date"
+  fi
+else
+  git clone "$REPO_URL" "$DOTFILES"
+  log_ok "Cloned to $DOTFILES"
+fi
+
+log_section "Running setup"
+"$DOTFILES/bin/setup-mac" </dev/tty
+
+log_section "Switching to SSH remote"
+git -C "$DOTFILES" remote set-url origin "$SSH_URL"
+log_ok "Remote updated"
+
+log_banner "Bootstrap complete"
+echo "  Dotfiles: $DOTFILES"
+echo "  Run '$DOTFILES/bin/setup-mac help' for commands"
+echo ""

@@ -9,10 +9,10 @@ Personal dev environment — dotfiles, language toolchains, and GCP devbox provi
 ### Quick start
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zaeemadamjee/zaeem/main/bin/setup-mac | bash
+curl -fsSL https://raw.githubusercontent.com/zaeemadamjee/zaeem/main/bin/bootstrap | bash
 ```
 
-`setup-mac` installs Homebrew packages, stows dotfiles, writes shell init to `~/.zshrc`, and installs language toolchains and tools. Open a new shell when done.
+`bootstrap` installs Xcode CLI tools, clones the repo to `~/workspace/zaeem`, then runs `setup-mac` to install Homebrew packages, stow dotfiles, write shell init, and install language toolchains and tools. Open a new shell when done.
 
 To check status at any time:
 

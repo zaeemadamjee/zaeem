@@ -104,6 +104,22 @@ cmd_install() {
   [[ -f "${BREW_PREFIX}/bin/brew" ]] && eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
   export PATH="${BREW_PREFIX}/bin:$PATH"
 
+  # Google Cloud CLI — install via apt (the official method on Debian/Ubuntu).
+  # The Brewfile skips this on Linux; Linuxbrew has no cask support.
+  if command -v gcloud &>/dev/null; then
+    log_info "gcloud already installed"
+  else
+    log_info "Installing gcloud CLI via apt..."
+    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+      | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
+      | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list > /dev/null
+    sudo apt-get update -qq
+    sudo apt-get install -y google-cloud-cli \
+      && log_ok "gcloud CLI" \
+      || { log_warn "gcloud install failed"; _track_failed "gcloud"; }
+  fi
+
   if brew bundle check --file="$REPO_ROOT/pkgs/Brewfile" &>/dev/null; then
     log_info "All packages already installed"
   else
