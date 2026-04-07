@@ -364,6 +364,7 @@ cmd_check() {
   [[ -d "$HOME/.tmux/plugins/tpm" ]]  && _chk "tpm"      ok || _chk "tpm"      fail
   command -v claude   &>/dev/null      && _chk "claude"   ok || _chk "claude"   fail
   command -v opencode &>/dev/null      && _chk "opencode" ok || _chk "opencode" fail
+  command -v gcloud   &>/dev/null      && _chk "gcloud"   ok || _chk "gcloud"   fail
 
   log_section "Docker"
   command -v docker &>/dev/null                          && _chk "docker installed" ok || _chk "docker installed" fail

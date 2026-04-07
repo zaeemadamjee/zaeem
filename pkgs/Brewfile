@@ -67,3 +67,15 @@ brew "zellij"          # terminal workspace
 brew "starship"
 brew "atuin"           # shell history
 brew "neofetch"        # system info on login
+
+# ---------------------------------------------------------------------------
+# Cloud
+# ---------------------------------------------------------------------------
+# macOS: cask is the official recommended install.
+# Linux: Linuxbrew has no cask support; use Google's tap formula instead.
+if OS.mac?
+  cask "google-cloud-sdk"
+else
+  tap "google/cloud-sdk"
+  brew "google-cloud-sdk"
+end

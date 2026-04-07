@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# setup-mac — Set up dev environment on a fresh macOS machine.
+# setup-mac — Set up dev environment on a fresh macOS machine (Apple Silicon).
 #
 # Usage: ./bin/setup-mac [command]
 #
 # Commands:
-#   all      Run install + link + langs + tools  (default)
+#   all      Run install + link + shell + langs + tools  (default)
 #   install  Run brew bundle from pkgs/Brewfile
-#   link     Stow all config packages into ~
+#   link     Stow config packages into ~ (dotfiles)
+#   shell    Write ~/.config/zaeem_devbox/shell.zsh and source it from ~/.zshrc
 #   langs    Install language toolchains (sourced from pkgs/lang/*)
 #   tools    Install coding tools (claude code, opencode, TPM)
 #   check    Print status of all components without modifying anything
@@ -19,6 +20,7 @@ set -euo pipefail
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$BIN_DIR/.." && pwd)"
 CONFIG_DIR="$REPO_ROOT/config"
+BREW_PREFIX="/opt/homebrew"
 
 # ---------------------------------------------------------------------------
 # Phase 1 — plain-echo bootstrap (runs before lib/log.sh is available)
@@ -26,7 +28,6 @@ CONFIG_DIR="$REPO_ROOT/config"
 
 _pre_ok()   { printf "  \033[32m✓\033[0m  %s\n" "$*"; }
 _pre_info() { printf "  %s\n" "$*"; }
-_pre_fail() { printf "  \033[31m✗\033[0m  %s\n" "$*" >&2; }
 
 # Xcode CLI tools are required for Homebrew and git.
 if ! xcode-select -p &>/dev/null; then
@@ -37,20 +38,17 @@ if ! xcode-select -p &>/dev/null; then
   _pre_ok "Xcode CLI tools"
 fi
 
-# Homebrew — support both Apple Silicon (/opt/homebrew) and Intel (/usr/local).
+# Homebrew
 if ! command -v brew &>/dev/null; then
   _pre_info "Installing Homebrew..."
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  for _brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
-    [[ -x "$_brew_bin" ]] && eval "$("$_brew_bin" shellenv)" && break
-  done
+  eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
   _pre_ok "Homebrew"
 else
   eval "$(brew shellenv 2>/dev/null || true)"
 fi
 
 export BREW_PREFIX
-BREW_PREFIX="$(brew --prefix)"
 
 # lib/log.sh is now sourceable — switch to it for all remaining output.
 # shellcheck source=../lib/log.sh
@@ -60,7 +58,6 @@ source "$REPO_ROOT/lib/log.sh"
 # Shared state
 # ---------------------------------------------------------------------------
 FAILED=()
-
 _track_failed() { FAILED+=("$1"); }
 
 # ---------------------------------------------------------------------------
@@ -85,27 +82,110 @@ cmd_install() {
     log_ok "brew bundle"
   fi
 
-  # Re-resolve PATH so tools installed in this run are available immediately.
   export PATH="${BREW_PREFIX}/bin:$PATH"
 }
 
 cmd_link() {
   log_section "Dotfiles"
 
-  local packages="aliases atuin claude git ghostty nvim opencode starship tmux zsh"
+  # zsh excluded — setup-mac manages shell init via cmd_shell, not by stowing
+  # the Linux devbox .zshrc.
+  local packages="aliases atuin claude git ghostty nvim opencode starship tmux"
   local stow="${BREW_PREFIX}/bin/stow"
 
+  # Back up any plain files that would block stow. Stow can only replace
+  # symlinks it owns; plain files (existing configs, tool-installer appends, etc.)
+  # cause silent failures. We back them up so the user can review old contents.
   for pkg in $packages; do
-    if "$stow" -d "$CONFIG_DIR" -n "$pkg" -t "$HOME" 2>/dev/null; then
-      log_info "Linking $pkg..."
-      "$stow" -d "$CONFIG_DIR" "$pkg" -t "$HOME" --restow \
-        || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
-    else
-      log_info "$pkg: already linked"
-    fi
+    while IFS= read -r src_file; do
+      local rel_path="${src_file#"$CONFIG_DIR/$pkg/"}"
+      local target="$HOME/$rel_path"
+      if [[ -f "$target" ]] && [[ ! -L "$target" ]]; then
+        log_info "Backing up ~/${rel_path} → ~/${rel_path}.bak"
+        mv "$target" "${target}.bak"
+      fi
+    done < <(find "$CONFIG_DIR/$pkg" -mindepth 1 -type f 2>/dev/null)
   done
 
-  log_ok "Dotfiles linked"
+  for pkg in $packages; do
+    "$stow" -d "$CONFIG_DIR" "$pkg" -t "$HOME" --restow \
+      && log_ok "$pkg" \
+      || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
+  done
+}
+
+cmd_shell() {
+  log_section "Shell"
+
+  local managed_dir="$HOME/.config/zaeem_devbox"
+  local managed_file="$managed_dir/shell.zsh"
+  local zshrc="$HOME/.zshrc"
+
+  mkdir -p "$managed_dir"
+
+  # Always overwritten so re-runs pick up any new tool init lines.
+  cat > "$managed_file" <<'SHELL_INIT'
+# macOS shell environment — managed by setup-mac.
+# Re-generated on each run of: setup-mac shell
+# Do not edit directly; changes will be overwritten.
+
+# --- Homebrew (Apple Silicon) ---
+export BREW_PREFIX="/opt/homebrew"
+eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
+
+# --- PATH ---
+export PATH="${BREW_PREFIX}/opt/rustup/bin:$PATH"  # rustup (keg-only)
+export PATH="$HOME/.local/bin:$PATH"               # claude code
+export PATH="$HOME/.opencode/bin:$PATH"            # opencode
+export PATH="$HOME/.npm-global/bin:$PATH"          # npm globals
+export PATH="$HOME/.cargo/bin:$PATH"               # rust/cargo
+export PATH="$PATH:$HOME/go/bin"                   # go binaries
+
+# --- nvm ---
+export NVM_DIR="$HOME/.nvm"
+[[ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ]]                    && source "${BREW_PREFIX}/opt/nvm/nvm.sh"
+[[ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ]] && source "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
+
+# --- Aliases ---
+[[ -f "$HOME/.aliases.sh" ]] && source "$HOME/.aliases.sh"
+
+# --- Rust/cargo ---
+[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+# --- fzf ---
+[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
+
+# --- Starship prompt ---
+eval "$(starship init zsh)"
+
+# --- zoxide (smart cd) ---
+eval "$(zoxide init zsh)"
+
+# --- atuin (shell history) ---
+command -v atuin &>/dev/null && eval "$(atuin init zsh)"
+
+# --- Google Cloud SDK ---
+[[ -f "${BREW_PREFIX}/share/google-cloud-sdk/path.zsh.inc" ]]       && source "${BREW_PREFIX}/share/google-cloud-sdk/path.zsh.inc"
+[[ -f "${BREW_PREFIX}/share/google-cloud-sdk/completion.zsh.inc" ]] && source "${BREW_PREFIX}/share/google-cloud-sdk/completion.zsh.inc"
+
+# --- Secrets ---
+if [[ -f "$HOME/.config/secrets.env" ]]; then
+  set -a
+  source "$HOME/.config/secrets.env"
+  set +a
+fi
+SHELL_INIT
+
+  log_ok "~/.config/zaeem_devbox/shell.zsh"
+
+  # Add source line to ~/.zshrc exactly once.
+  touch "$zshrc"
+  if grep -qF "source \"${managed_file}\"" "$zshrc" 2>/dev/null; then
+    log_info "~/.zshrc: source line already present"
+  else
+    printf '\n# zaeem_devbox — added by setup-mac\nsource "%s"\n' "$managed_file" >> "$zshrc"
+    log_ok "~/.zshrc updated"
+  fi
 }
 
 cmd_langs() {
@@ -177,7 +257,6 @@ cmd_tools() {
       || { log_warn "opencode install failed"; _track_failed "opencode"; }
   fi
 
-  # atuin history seed + tldr cache (best-effort, non-fatal)
   log_info "Seeding tealdeer page cache..."
   tldr --update >/dev/null 2>&1 || true
 
@@ -212,21 +291,29 @@ cmd_check() {
 
   log_section "Dotfiles"
   local stow="${BREW_PREFIX}/bin/stow"
-  for pkg in aliases atuin claude git ghostty nvim opencode starship tmux zsh; do
+  for pkg in aliases atuin claude git ghostty nvim opencode starship tmux; do
     "$stow" -d "$CONFIG_DIR" -n "$pkg" -t "$HOME" &>/dev/null \
       && _chk "stow $pkg" ok || _chk "stow $pkg (already linked)" ok
   done
 
+  log_section "Shell"
+  local managed_file="$HOME/.config/zaeem_devbox/shell.zsh"
+  [[ -f "$managed_file" ]] \
+    && _chk "~/.config/zaeem_devbox/shell.zsh" ok || _chk "~/.config/zaeem_devbox/shell.zsh" fail
+  grep -qF "source \"${managed_file}\"" "$HOME/.zshrc" 2>/dev/null \
+    && _chk "~/.zshrc source line" ok || _chk "~/.zshrc source line" fail
+
   log_section "Languages"
-  command -v rustc &>/dev/null  && _chk "rust"   ok || _chk "rust"   fail
-  command -v node  &>/dev/null  && _chk "node"   ok || _chk "node"   fail
-  command -v go    &>/dev/null  && _chk "go"     ok || _chk "go"     fail
+  command -v rustc   &>/dev/null && _chk "rust"   ok || _chk "rust"   fail
+  command -v node    &>/dev/null && _chk "node"   ok || _chk "node"   fail
+  command -v go      &>/dev/null && _chk "go"     ok || _chk "go"     fail
   command -v python3 &>/dev/null && _chk "python" ok || _chk "python" fail
 
   log_section "Tools"
-  [[ -d "$HOME/.tmux/plugins/tpm" ]]           && _chk "tpm"       ok || _chk "tpm"       fail
-  command -v claude    &>/dev/null              && _chk "claude"    ok || _chk "claude"    fail
-  command -v opencode  &>/dev/null              && _chk "opencode"  ok || _chk "opencode"  fail
+  [[ -d "$HOME/.tmux/plugins/tpm" ]] && _chk "tpm"      ok || _chk "tpm"      fail
+  command -v claude   &>/dev/null    && _chk "claude"   ok || _chk "claude"   fail
+  command -v opencode &>/dev/null    && _chk "opencode" ok || _chk "opencode" fail
+  command -v gcloud   &>/dev/null    && _chk "gcloud"   ok || _chk "gcloud"   fail
 
   echo
   if [[ ${#missing[@]} -eq 0 ]]; then
@@ -241,6 +328,7 @@ cmd_all() {
   log_banner "setup-mac"
   cmd_install
   cmd_link
+  cmd_shell
   cmd_langs
   cmd_tools
   _summary
@@ -249,14 +337,15 @@ cmd_all() {
 cmd_help() {
   cat <<EOF
 
-  setup-mac — provision a fresh macOS machine
+  setup-mac — provision a fresh macOS machine (Apple Silicon)
 
   Usage: ./bin/setup-mac [command]
 
   Commands:
-    all      Run install + link + langs + tools  (default)
+    all      Run install + link + shell + langs + tools  (default)
     install  Run brew bundle from pkgs/Brewfile
-    link     Stow all config packages into ~
+    link     Stow config packages into ~ (dotfiles)
+    shell    Write ~/.config/zaeem_devbox/shell.zsh and source it from ~/.zshrc
     langs    Install language toolchains (pkgs/lang/*)
     tools    Install coding tools (claude, opencode, TPM)
     check    Print status of all components without modifying anything
@@ -268,7 +357,7 @@ EOF
 _summary() {
   echo
   if [[ ${#FAILED[@]} -eq 0 ]]; then
-    log_ok "Setup complete — open a new shell for PATH changes to take effect"
+    log_ok "Setup complete — open a new shell for changes to take effect"
   else
     log_warn "Setup complete with ${#FAILED[@]} failure(s):"
     for f in "${FAILED[@]}"; do
@@ -290,6 +379,7 @@ main() {
     all)     cmd_all ;;
     install) log_banner "setup-mac install"; cmd_install; _summary ;;
     link)    log_banner "setup-mac link";    cmd_link;    _summary ;;
+    shell)   log_banner "setup-mac shell";   cmd_shell;   _summary ;;
     langs)   log_banner "setup-mac langs";   cmd_langs;   _summary ;;
     tools)   log_banner "setup-mac tools";   cmd_tools;   _summary ;;
     check)   cmd_check ;;
