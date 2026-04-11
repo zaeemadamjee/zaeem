@@ -62,7 +62,7 @@ else
 fi
 
 log_section "Running setup"
-"$DOTFILES/bin/setup-mac" all </dev/tty
+"$DOTFILES/bin/rigging" all </dev/tty
 
 log_section "Switching to SSH remote"
 git -C "$DOTFILES" remote set-url origin "$SSH_URL"
@@ -70,5 +70,5 @@ log_ok "Remote updated"
 
 log_banner "Bootstrap complete"
 echo "  Dotfiles: $DOTFILES"
-echo "  Run '$DOTFILES/bin/setup-mac help' for commands"
+echo "  Run '$DOTFILES/bin/rigging help' for commands"
 echo ""

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# setup-mac — Set up dev environment on a fresh macOS machine (Apple Silicon).
+# rigging — Set up dev environment on a fresh macOS machine (Apple Silicon).
 #
-# Usage: ./bin/setup-mac [command]
+# Usage: ./bin/rigging [command]
 #
 # Commands:
 #   all      Run install + link + shell + langs + tools  (default)
@@ -99,7 +99,7 @@ cmd_install() {
 cmd_link() {
   log_section "Dotfiles"
 
-  # zsh excluded — setup-mac manages shell init via cmd_shell, not by stowing
+  # zsh excluded — rigging manages shell init via cmd_shell, not by stowing
   # the Linux devbox .zshrc.
   local packages="aliases atuin claude git ghostty nvim opencode starship tmux"
   local stow="${BREW_PREFIX}/bin/stow"
@@ -140,8 +140,8 @@ cmd_shell() {
 
   # Always overwritten so re-runs pick up any new tool init lines.
   cat > "$managed_file" <<'SHELL_INIT'
-# macOS shell environment — managed by setup-mac.
-# Re-generated on each run of: setup-mac shell
+# macOS shell environment — managed by rigging.
+# Re-generated on each run of: rigging shell
 # Do not edit directly; changes will be overwritten.
 
 # --- Homebrew (Apple Silicon) ---
@@ -197,7 +197,7 @@ SHELL_INIT
   if grep -qF "source \"${managed_file}\"" "$zshrc" 2>/dev/null; then
     log_info "~/.zshrc: source line already present"
   else
-    printf '\n# zaeem — added by setup-mac\nsource "%s"\n' "$managed_file" >> "$zshrc"
+    printf '\n# zaeem — added by rigging\nsource "%s"\n' "$managed_file" >> "$zshrc"
     log_ok "~/.zshrc updated"
   fi
 }
@@ -263,7 +263,7 @@ cmd_tools() {
 }
 
 cmd_check() {
-  log_banner "setup-mac check"
+  log_banner "rigging check"
 
   local missing=()
 
@@ -317,7 +317,7 @@ cmd_check() {
   if [[ ${#missing[@]} -eq 0 ]]; then
     log_ok "All components installed"
   else
-    log_error "${#missing[@]} component(s) missing — run: ./bin/setup-mac"
+    log_error "${#missing[@]} component(s) missing — run: ./bin/rigging"
     exit 1
   fi
 }
@@ -337,9 +337,9 @@ cmd_help() {
   print_banner
   cat <<EOF
 
-  setup-mac — provision a fresh macOS machine (Apple Silicon)
+  rigging — provision a fresh macOS machine (Apple Silicon)
 
-  Usage: ./bin/setup-mac [command]
+  Usage: ./bin/rigging [command]
 
   Commands:
     all      Run install + link + shell + langs + tools  (default)
@@ -403,7 +403,7 @@ _summary() {
     for f in "${FAILED[@]}"; do
       log_dim "  · $f"
     done
-    log_dim "Re-run ./bin/setup-mac to retry."
+    log_dim "Re-run ./bin/rigging to retry."
   fi
   echo
 }
@@ -417,11 +417,11 @@ main() {
 
   case "$cmd" in
     all)     cmd_all ;;
-    install) log_banner "setup-mac install"; cmd_install; _summary ;;
-    link)    log_banner "setup-mac link";    cmd_link;    _summary ;;
-    shell)   log_banner "setup-mac shell";   cmd_shell;   _summary ;;
-    langs)   log_banner "setup-mac langs";   cmd_langs;   _summary ;;
-    tools)   log_banner "setup-mac tools";   cmd_tools;   _summary ;;
+    install) log_banner "rigging install"; cmd_install; _summary ;;
+    link)    log_banner "rigging link";    cmd_link;    _summary ;;
+    shell)   log_banner "rigging shell";   cmd_shell;   _summary ;;
+    langs)   log_banner "rigging langs";   cmd_langs;   _summary ;;
+    tools)   log_banner "rigging tools";   cmd_tools;   _summary ;;
     check)   cmd_check ;;
     help|--help|-h) cmd_help ;;
     *)
