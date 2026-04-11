@@ -35,5 +35,8 @@ alias ...='cd ../..'
 alias cc='claude'
 alias ccd='claude --dangerously-skip-permissions'
 
+# --- opencode ---
+alias oc='opencode web --hostname 0.0.0.0 --port 4096 --mdns & sleep 1 && opencode attach http://localhost:4096'
+
 # --- gcloud ---
 alias gauth='gcloud auth login'
