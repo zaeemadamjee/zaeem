@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # reset — Wipe and recreate a devbox VM (fresh disk, full bootstrap on next login).
 #
-# Usage: ./bin/reset --profile <name>
+# Usage: ./devbox/bin/reset --profile <name>
 #
 # Taints the Terraform VM resource and re-applies, destroying and recreating
 # only the compute instance. Service account, IAM, and firewall are left intact.
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$BIN_DIR/../devbox/lib/profile"
+source "$BIN_DIR/../lib/profile"
 
 PROFILE=$(parse_profile_flag "$@")
 load_profile "$PROFILE"
@@ -51,5 +51,5 @@ read -r _start
 if [[ "$_start" != "n" && "$_start" != "N" ]]; then
   exec "$BIN_DIR/start" "$PROFILE_NAME"
 else
-  log_dim "Run when ready:  ./bin/start $PROFILE_NAME"
+  log_dim "Run when ready:  ./devbox/bin/start $PROFILE_NAME"
 fi

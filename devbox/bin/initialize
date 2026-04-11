@@ -10,12 +10,12 @@
 #   4. terraform init, import any pre-existing GCP resources, then terraform apply
 #
 # All steps are idempotent — safe to re-run.
-# For subsequent wipe-and-recreate of an existing VM, use bin/reset instead.
+# For subsequent wipe-and-recreate of an existing VM, use devbox/bin/reset instead.
 
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$BIN_DIR/../devbox/lib/profile"
+source "$BIN_DIR/../lib/profile"
 
 PROFILE=$(parse_profile_flag "$@")
 load_profile "$PROFILE"
@@ -151,5 +151,5 @@ echo
 terraform apply -var-file="$TMPVARS"
 
 log_banner "VM provisioned successfully"
-log_dim "Next:  ./bin/start --profile $PROFILE_NAME"
+log_dim "Next:  ./devbox/bin/start --profile $PROFILE_NAME"
 log_dim "       (bootstrap runs interactively on first SSH login)"

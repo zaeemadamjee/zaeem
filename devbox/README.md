@@ -4,7 +4,7 @@ GCP devbox provisioning — Terraform infra, bootstrap, and per-VM profiles.
 
 ## Orchestrator
 
-    bin/orchestrator <command> [profile]
+    devbox/bin/orchestrator <command> [profile]
 
 | Command              | Effect                                      |
 |----------------------|---------------------------------------------|
@@ -29,11 +29,11 @@ API keys and tokens go in a gitignored env file next to the profile:
 
     devbox/profiles/<name>.env   # never committed
 
-`bin/start` copies this to `~/.config/secrets.env` on the VM before connecting.
+`devbox/bin/start` copies this to `~/.config/secrets.env` on the VM before connecting.
 
 ## First provision
 
-    bin/orchestrator initialize personal
-    bin/orchestrator start personal
+    devbox/bin/orchestrator initialize personal
+    devbox/bin/orchestrator start personal
 
 Bootstrap runs interactively on first SSH login.

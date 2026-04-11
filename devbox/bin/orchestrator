@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # orchestrator — Manage devbox VMs.
 #
-# Usage: ./bin/orchestrator <command> [<profile>]
+# Usage: ./devbox/bin/orchestrator <command> [<profile>]
 #
 # Commands:
 #   status               Show GCP auth + live VM state for all profiles
@@ -14,9 +14,9 @@
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$BIN_DIR/../devbox/lib/profile"
-# shellcheck source=../lib/banner.sh
-source "$BIN_DIR/../lib/banner.sh"
+source "$BIN_DIR/../lib/profile"
+# shellcheck source=../../lib/banner.sh
+source "$BIN_DIR/../../lib/banner.sh"
 
 # ---------------------------------------------------------------------------
 # Commands
@@ -120,7 +120,7 @@ cmd_help() {
 
   orchestrator — manage devbox VMs
 
-  Usage: ./bin/orchestrator <command> [<profile>]
+  Usage: ./devbox/bin/orchestrator <command> [<profile>]
 
   Commands:
     status               Show GCP auth + live VM state for all profiles
@@ -131,9 +131,9 @@ cmd_help() {
     help                 Show this message
 
   Examples:
-    ./bin/orchestrator status
-    ./bin/orchestrator start personal
-    ./bin/orchestrator stop  mini
+    ./devbox/bin/orchestrator status
+    ./devbox/bin/orchestrator start personal
+    ./devbox/bin/orchestrator stop  mini
 
 EOF
 }

@@ -9,7 +9,7 @@
 set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$BIN_DIR/../devbox/lib/profile"
+source "$BIN_DIR/../lib/profile"
 
 PROFILE=$(parse_profile_flag "$@")
 load_profile "$PROFILE"
