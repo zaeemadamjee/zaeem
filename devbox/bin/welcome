@@ -9,12 +9,9 @@ REPO="$HOME/zaeem"
 
 # shellcheck source=../../lib/log.sh
 source "$REPO/lib/log.sh"
-# shellcheck source=../../lib/banner.sh
-source "$REPO/lib/banner.sh"
 
 PROFILE="${DEVBOX_PROFILE:-$(head -1 "$HOME/.config/devbox/profile" 2>/dev/null | tr -d '\r\n' || echo '?')}"
 
-print_banner "$PROFILE"
 BOOTSTRAPPED=false
 [[ -f "$HOME/.bootstrap-complete" ]] && BOOTSTRAPPED=true
 
