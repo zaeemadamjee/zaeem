@@ -192,12 +192,18 @@ SHELL_INIT
 
   log_ok "~/.config/zaeem/shell.zsh"
 
-  # Add source line to ~/.zshrc exactly once.
+  # Add managed block to ~/.zshrc exactly once (guarded by sentinel comment).
   touch "$zshrc"
-  if grep -qF "source \"${managed_file}\"" "$zshrc" 2>/dev/null; then
-    log_info "~/.zshrc: source line already present"
+  if grep -qF "# --- zaeem — [added by rigging] ---" "$zshrc" 2>/dev/null; then
+    log_info "~/.zshrc: zaeem block already present"
   else
-    printf '\n# zaeem — added by rigging\nsource "%s"\n' "$managed_file" >> "$zshrc"
+    cat >> "$zshrc" <<EOF
+
+# --- zaeem — [added by rigging] ---
+source "${managed_file}"
+alias devbox='bash \$HOME/workspace/zaeem/devbox/bin/orchestrator'
+alias rigging='bash \$HOME/workspace/zaeem/bin/rigging'
+EOF
     log_ok "~/.zshrc updated"
   fi
 }
