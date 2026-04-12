@@ -93,7 +93,7 @@ resource "google_compute_instance" "devbox" {
     # SSH access — one "zaeem:<pubkey>" entry per machine
     ssh-keys = join("\n", [for key in var.ssh_public_keys : "zaeem:${key}"])
 
-    # Profile metadata — read by bootstrap.sh and clone-repos.sh on the VM
+    # Profile metadata — read by rigging and clone-repos.sh on the VM
     devbox-profile            = var.profile_name
     devbox-idle-timer-enabled = tostring(var.idle_timer_enabled)
     devbox-repos              = join("\n", var.repos)
@@ -171,10 +171,10 @@ SSH_CONFIG
       ssh-keyscan -H github.com >> /home/zaeem/.ssh/known_hosts 2>/dev/null || true
       chown -R zaeem:zaeem /home/zaeem/.ssh
 
-      echo "[startup] Writing pre-bootstrap ~/.zshrc stub..."
+      echo "[startup] Writing pre-rigging ~/.zshrc stub..."
       cat > /home/zaeem/.zshrc <<'ZSHRC'
-# Pre-bootstrap stub — replaced by devbox/bin/bootstrap (stow zsh) with the real config/zsh/.zshrc symlink.
-if [[ ! -f "$HOME/.bootstrap-complete" ]]; then
+# Pre-rigging stub — replaced by devbox/bin/rigging (stow zsh) with the real config/zsh/.zshrc symlink.
+if [[ ! -f "$HOME/.rigging-complete" ]]; then
   REPO="$HOME/zaeem"
 
   # Ensure GitHub host key is trusted on every login (idempotent).

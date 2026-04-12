@@ -13,7 +13,7 @@ source "$REPO/lib/log.sh"
 PROFILE="${DEVBOX_PROFILE:-$(head -1 "$HOME/.config/devbox/profile" 2>/dev/null | tr -d '\r\n' || echo '?')}"
 
 BOOTSTRAPPED=false
-[[ -f "$HOME/.bootstrap-complete" ]] && BOOTSTRAPPED=true
+[[ -f "$HOME/.rigging-complete" ]] && BOOTSTRAPPED=true
 
 # ---------------------------------------------------------------------------
 # System info via neofetch
@@ -21,7 +21,7 @@ BOOTSTRAPPED=false
 if command -v neofetch &>/dev/null; then
   neofetch
 else
-  log_warn "neofetch not installed — run: bootstrap install"
+  log_warn "neofetch not installed — run: rigging install"
 fi
 
 # ---------------------------------------------------------------------------
@@ -31,9 +31,9 @@ log_section "devbox"
 log_info "Profile:    $PROFILE"
 
 if $BOOTSTRAPPED; then
-  log_ok "Bootstrap: complete"
+  log_ok "Rigging: complete"
 else
-  log_warn "Bootstrap: not run"
+  log_warn "Rigging: not run"
 fi
 
 echo
@@ -42,27 +42,27 @@ echo
 # If not bootstrapped — offer to run it now
 # ---------------------------------------------------------------------------
 if ! $BOOTSTRAPPED; then
-  printf "  Run bootstrap now? [Y/n]: "
+  printf "  Run rigging now? [Y/n]: "
   read -r _answer
   if [[ "$_answer" != "n" && "$_answer" != "N" ]]; then
     echo
-    if bash "$REPO/devbox/bin/bootstrap"; then
-      touch "$HOME/.bootstrap-complete"
+    if bash "$REPO/devbox/bin/rigging"; then
+      touch "$HOME/.rigging-complete"
       echo
-      # Refresh PATH to pick up Homebrew (just installed by bootstrap),
+      # Refresh PATH to pick up Homebrew (just installed by rigging),
       # then go straight into tmux so the tmux shell fully sources .zshrc.
       _brew_prefix="/home/linuxbrew/.linuxbrew"
       [[ -f "${_brew_prefix}/bin/brew" ]] && eval "$("${_brew_prefix}/bin/brew" shellenv)"
       exec tmux new-session -A -s main
     fi
   else
-    log_dim "Run any time:      bootstrap"
-    log_dim "Check status only: bootstrap check"
+    log_dim "Run any time:      rigging"
+    log_dim "Check status only: rigging check"
     echo
   fi
 else
   # Already bootstrapped — show a quick health check
-  bash "$REPO/devbox/bin/bootstrap" check || true
+  bash "$REPO/devbox/bin/rigging" check || true
   echo
 fi
 

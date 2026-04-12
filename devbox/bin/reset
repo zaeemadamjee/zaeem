@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# reset — Wipe and recreate a devbox VM (fresh disk, full bootstrap on next login).
+# reset — Wipe and recreate a devbox VM (fresh disk, full rigging on next login).
 #
 # Usage: ./devbox/bin/reset --profile <name>
 #

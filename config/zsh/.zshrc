@@ -1,4 +1,4 @@
-# --- PATH: tool install dirs (must come before welcome so bootstrap --check finds them) ---
+# --- PATH: tool install dirs (must come before welcome so rigging --check finds them) ---
 export PATH="$HOME/.local/bin:$PATH"           # claude code
 export PATH="$HOME/.opencode/bin:$PATH"        # opencode
 export PATH="$HOME/.npm-global/bin:$PATH"      # npm globals
@@ -15,7 +15,7 @@ export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 # --- Welcome screen + tmux attach (SSH login only, not already inside tmux) ---
 # Placed early so exec tmux short-circuits the rest of zshrc on initial SSH login —
 # devbox/starship/etc only need to init inside tmux sessions, not the throwaway
-# pre-tmux shell. PATH is set above so bootstrap --check can find all tools.
+# pre-tmux shell. PATH is set above so rigging --check can find all tools.
 if [[ -n "$SSH_CONNECTION" ]] && [[ -z "$TMUX" ]] && [[ -t 0 ]]; then
   if [[ -z "${WELCOME_SHOWN:-}" ]]; then
     [[ -f "$HOME/zaeem/devbox/bin/welcome" ]] && source "$HOME/zaeem/devbox/bin/welcome"
@@ -38,7 +38,8 @@ setopt CORRECT
 
 # --- Aliases ---
 source ~/.aliases.sh
-alias bootstrap='bash ~/zaeem/devbox/bin/bootstrap'
+alias rigging='bash ~/zaeem/devbox/bin/rigging'
+alias shutdown='sudo poweroff'
 
 # --- Homebrew (manages python, go, rust, etc.) ---
 BREW_PREFIX="/home/linuxbrew/.linuxbrew"

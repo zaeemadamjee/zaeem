@@ -1,6 +1,6 @@
 # devbox
 
-GCP devbox provisioning — Terraform infra, bootstrap, and per-VM profiles.
+GCP devbox provisioning — Terraform infra, rigging, and per-VM profiles.
 
 ## Orchestrator
 
@@ -36,4 +36,4 @@ API keys and tokens go in a gitignored env file next to the profile:
     devbox/bin/orchestrator initialize personal
     devbox/bin/orchestrator start personal
 
-Bootstrap runs interactively on first SSH login.
+Rigging runs interactively on first SSH login.

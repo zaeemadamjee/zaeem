@@ -152,4 +152,4 @@ terraform apply -var-file="$TMPVARS"
 
 log_banner "VM provisioned successfully"
 log_dim "Next:  ./devbox/bin/start --profile $PROFILE_NAME"
-log_dim "       (bootstrap runs interactively on first SSH login)"
+log_dim "       (rigging runs interactively on first SSH login)"
