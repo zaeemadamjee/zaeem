@@ -274,6 +274,45 @@ cmd_docker() {
   fi
 }
 
+cmd_tailscale() {
+  log_section "Tailscale"
+
+  if command -v tailscale &>/dev/null; then
+    log_info "Tailscale: already installed"
+  else
+    log_info "Tailscale: installing..."
+    local _ts_log
+    _ts_log="$(mktemp)"
+    if curl -fsSL https://tailscale.com/install.sh | sh >"$_ts_log" 2>&1; then
+      log_ok "Tailscale installed"
+    else
+      log_error "Tailscale install failed — see log: $_ts_log"
+      cat "$_ts_log" >&2
+      _track_failed "tailscale install"
+      return
+    fi
+    rm -f "$_ts_log"
+  fi
+
+  if systemctl is-active tailscaled &>/dev/null; then
+    log_info "tailscaled: already running"
+  else
+    log_info "tailscaled: enabling..."
+    sudo systemctl enable --now tailscaled \
+      && log_ok "tailscaled running" \
+      || { log_warn "tailscaled failed to start"; _track_failed "tailscaled daemon"; return; }
+  fi
+
+  if [[ -n "${TAILSCALE_AUTH_KEY:-}" ]]; then
+    log_info "Tailscale: authenticating..."
+    sudo tailscale up --authkey "$TAILSCALE_AUTH_KEY" --accept-routes \
+      && log_ok "Tailscale authenticated" \
+      || { log_warn "Tailscale auth failed"; _track_failed "tailscale auth"; }
+  else
+    log_warn "TAILSCALE_AUTH_KEY not set — skipping auth. Run 'sudo tailscale up' manually."
+  fi
+}
+
 cmd_idle() {
   log_section "Idle timer"
 
