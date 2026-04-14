@@ -457,6 +457,7 @@ cmd_all() {
   cmd_langs
   cmd_tools
   cmd_docker
+  cmd_tailscale
   cmd_idle
   cmd_repos
   _secrets_check
