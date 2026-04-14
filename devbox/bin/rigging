@@ -481,17 +481,17 @@ cmd_help() {
   Usage: rigging [command]
 
   Commands:
-    all      Run everything  (default)
-    install  Homebrew + brew bundle
-    link     Stow dotfiles + .hushlogin
-    langs    Language toolchains via pkgs/lang/*
-    tools    Claude code, opencode, TPM, atuin, tldr
+    all       Run everything  (default)
+    install   Homebrew + brew bundle
+    link      Stow dotfiles + .hushlogin
+    langs     Language toolchains via pkgs/lang/*
+    tools     Claude code, opencode, TPM, atuin, tldr
     docker    Docker Engine + daemon + group membership
     tailscale Install Tailscale daemon + authenticate
     idle      Systemd idle timer
-    repos    Clone workspace repos from GCE metadata
-    check    Print status without modifying anything
-    help     Show this message
+    repos     Clone workspace repos from GCE metadata
+    check     Print ✓/✗ status without modifying anything
+    help      Show this message
 
 EOF
 }
@@ -536,16 +536,16 @@ main() {
   esac
 
   case "$cmd" in
-    all)     cmd_all ;;
-    install) log_banner "rigging install"; cmd_install; _summary ;;
-    link)    log_banner "rigging link";    cmd_link;    _summary ;;
-    langs)   log_banner "rigging langs";   cmd_langs;   _summary ;;
-    tools)   log_banner "rigging tools";   cmd_tools;   _summary ;;
+    all)            cmd_all ;;
+    install)   log_banner "rigging install";   cmd_install;   _summary ;;
+    link)      log_banner "rigging link";      cmd_link;      _summary ;;
+    langs)     log_banner "rigging langs";     cmd_langs;     _summary ;;
+    tools)     log_banner "rigging tools";     cmd_tools;     _summary ;;
     docker)    log_banner "rigging docker";    cmd_docker;    _summary ;;
     tailscale) log_banner "rigging tailscale"; cmd_tailscale; _summary ;;
     idle)      log_banner "rigging idle";      cmd_idle;      _summary ;;
-    repos)   log_banner "rigging repos";   cmd_repos;   _summary ;;
-    check)   _resolve_profile; cmd_check ;;
+    repos)     log_banner "rigging repos";     cmd_repos;     _summary ;;
+    check)     _resolve_profile; cmd_check ;;
     help|--help|-h) cmd_help ;;
     *)
       log_error "Unknown command: $cmd"
