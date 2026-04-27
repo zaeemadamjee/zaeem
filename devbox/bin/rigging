@@ -15,7 +15,6 @@
 #   repos      Clone workspace repos from GCE metadata
 #   gui        Install GUI stack (GNOME + RustDesk) and start it
 #   gui-stop   Stop the GUI session (Xorg + GNOME + RustDesk daemon)
-#   gui-check  Report status of the GUI stack
 #   check      Print ✓/✗ status without modifying anything
 #   help       Show this message
 #
@@ -545,7 +544,7 @@ UNIT
   echo
   log_dim "  Password is also stored at: $rd_config"
   log_dim "  To stop the GUI:  rigging gui-stop"
-  log_dim "  To check status:  rigging gui-check"
+  log_dim "  To check status:  rigging check"
   echo
 }
 
@@ -561,65 +560,6 @@ cmd_gui_stop() {
   sudo systemctl stop gdm3 2>/dev/null \
     && log_ok "GDM3 stopped" \
     || log_info "GDM3: not running"
-}
-
-cmd_gui_check() {
-  log_section "GUI check"
-
-  local missing=()
-  _gchk() {
-    local label="$1" result="$2"
-    if [[ "$result" == "ok" ]]; then
-      log_ok "$label"
-    else
-      log_error "$label"
-      missing+=("$label")
-    fi
-  }
-
-  # VirtIO GPU
-  [[ -e /dev/dri/card0 ]] \
-    && _gchk "VirtIO GPU (/dev/dri/card0)" ok \
-    || _gchk "VirtIO GPU (/dev/dri/card0)" fail
-
-  # Packages
-  command -v rustdesk &>/dev/null \
-    && _gchk "rustdesk installed" ok || _gchk "rustdesk installed" fail
-  dpkg -l gdm3 &>/dev/null \
-    && _gchk "gdm3 installed" ok || _gchk "gdm3 installed" fail
-
-  # Services
-  systemctl is-active gdm3 &>/dev/null \
-    && _gchk "gdm3 running" ok || _gchk "gdm3 running" fail
-  systemctl --user is-active rustdesk &>/dev/null \
-    && _gchk "rustdesk daemon running" ok || _gchk "rustdesk daemon running" fail
-
-  # X display
-  DISPLAY=:0 xdpyinfo &>/dev/null \
-    && _gchk "X display :0 reachable" ok || _gchk "X display :0 reachable" fail
-
-  # Connection info
-  local ts_ip
-  ts_ip=$(tailscale ip -4 2>/dev/null || true)
-  local rd_config="$HOME/.config/rustdesk/RustDesk2.toml"
-  local rd_password
-  rd_password=$(grep "^permanent_password" "$rd_config" 2>/dev/null | cut -d'"' -f2 || echo "(not set — run: rigging gui)")
-
-  echo
-  log_dim "  ┌─ Connection details ──────────────────────────────────────┐"
-  if [[ -n "$ts_ip" ]]; then
-    log_dim "  │  Tailscale IP : ${ts_ip}"
-  else
-    log_dim "  │  Tailscale IP : (not connected — run: sudo tailscale up)"
-  fi
-  log_dim "  │  Port         : 21118"
-  log_dim "  │  Password     : ${rd_password}"
-  log_dim "  └───────────────────────────────────────────────────────────┘"
-  echo
-
-  if [[ ${#missing[@]} -gt 0 ]]; then
-    log_warn "${#missing[@]} GUI component(s) not ready — run: rigging gui"
-  fi
 }
 
 cmd_check() {
@@ -688,10 +628,30 @@ cmd_check() {
     _chk "VirtIO GPU (/dev/dri/card0)" ok
     command -v rustdesk &>/dev/null \
       && _chk "rustdesk installed" ok || _chk "rustdesk installed" fail
+    dpkg -l gdm3 &>/dev/null \
+      && _chk "gdm3 installed" ok || _chk "gdm3 installed" fail
     systemctl is-active gdm3 &>/dev/null \
       && _chk "gdm3 running" ok || log_info "gdm3: not running (run: rigging gui)"
     systemctl --user is-active rustdesk &>/dev/null \
       && _chk "rustdesk daemon" ok || log_info "rustdesk daemon: not running (run: rigging gui)"
+    DISPLAY=:0 xdpyinfo &>/dev/null \
+      && _chk "X display :0 reachable" ok || log_info "X display :0: not reachable (run: rigging gui)"
+
+    local ts_ip rd_config rd_password
+    ts_ip=$(tailscale ip -4 2>/dev/null || true)
+    rd_config="$HOME/.config/rustdesk/RustDesk2.toml"
+    rd_password=$(grep "^permanent_password" "$rd_config" 2>/dev/null | cut -d'"' -f2 || echo "(not set — run: rigging gui)")
+    echo
+    log_dim "  ┌─ RustDesk connection ─────────────────────────────────────┐"
+    if [[ -n "$ts_ip" ]]; then
+      log_dim "  │  Tailscale IP : ${ts_ip}"
+    else
+      log_dim "  │  Tailscale IP : (not connected — run: sudo tailscale up)"
+    fi
+    log_dim "  │  Port         : 21118"
+    log_dim "  │  Password     : ${rd_password}"
+    log_dim "  └───────────────────────────────────────────────────────────┘"
+    echo
   else
     log_info "VirtIO GPU not present — GUI not enabled (ENABLE_DISPLAY=false in profile)"
   fi
@@ -742,7 +702,6 @@ cmd_help() {
     repos      Clone workspace repos from GCE metadata
     gui        Install GUI stack (GNOME + RustDesk) and start it
     gui-stop   Stop the GUI session (Xorg + GNOME + RustDesk daemon)
-    gui-check  Report status of the GUI stack and print connection info
     check      Print ✓/✗ status without modifying anything
     help       Show this message
 
@@ -798,9 +757,8 @@ main() {
     tailscale) log_banner "rigging tailscale";  cmd_tailscale; _summary ;;
     idle)      log_banner "rigging idle";       cmd_idle;      _summary ;;
     repos)     log_banner "rigging repos";      cmd_repos;     _summary ;;
-    gui)       log_banner "rigging gui";        cmd_gui;       _summary ;;
-    gui-stop)  log_banner "rigging gui-stop";   cmd_gui_stop;  _summary ;;
-    gui-check) log_banner "rigging gui-check";  cmd_gui_check ;;
+    gui)       log_banner "rigging gui";       cmd_gui;      _summary ;;
+    gui-stop)  log_banner "rigging gui-stop";  cmd_gui_stop; _summary ;;
     check)     _resolve_profile; cmd_check ;;
     help|--help|-h) cmd_help ;;
     *)
