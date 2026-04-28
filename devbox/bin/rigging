@@ -529,7 +529,7 @@ UNIT
     rd_password=$(grep "^permanent_password" "$rd_config" | cut -d'"' -f2)
     log_info "RustDesk: reusing existing permanent password"
   else
-    rd_password=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
+    rd_password=$(head -c 128 /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 16)
     log_info "RustDesk: generating new permanent password"
   fi
 
