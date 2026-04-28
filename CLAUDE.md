@@ -8,7 +8,7 @@ This repository maintains the complete, reproducible configuration needed to pro
 - **Config** (`config/`) — dotfiles symlinked into `~` by rigging (zshrc, aliases, nvim, tmux, etc.)
 - **Devbox** (`devbox/`) — everything that runs on the VM: `bin/` (rigging, welcome, idle-check), `terraform/` (GCP infra), `lib/` (shared shell utils), `profiles/` (per-VM config), `idle/` (systemd units)
 - **Lib** (`lib/`) — generic shared shell utilities (e.g. gum output helpers)
-- **Pkgs** (`pkgs/Brewfile`) — hermetic CLI tool dependencies via Homebrew
+- **Pkgs** (`pkgs/brew/`) — hermetic CLI tool dependencies via Homebrew (`taps`, `essentials`, `casks`)
 
 The goal is that a fresh VM can be fully provisioned by running Terraform, SSHing in, and letting the rigging script run. Nothing should require manual one-off steps.
 
@@ -16,12 +16,12 @@ The goal is that a fresh VM can be fully provisioned by running Terraform, SSHin
 
 **When fixing an environment or tooling issue, always capture the fix in the configuration.**
 
-If you discover that something is broken on a fresh machine provision (missing tool, wrong version, bad PATH, missing env var, broken shell init, etc.), don't just patch it locally — encode the fix in `pkgs/Brewfile`, `devbox/bin/rigging`, or the relevant dotfile so the next machine provision works correctly out of the box.
+If you discover that something is broken on a fresh machine provision (missing tool, wrong version, bad PATH, missing env var, broken shell init, etc.), don't just patch it locally — encode the fix in `pkgs/brew/essentials` (or `casks`), `devbox/bin/rigging`, or the relevant dotfile so the next machine provision works correctly out of the box.
 
 Examples of what this means in practice:
 
-- A required CLI tool is missing → add it to `pkgs/Brewfile`
-- A package needs a specific version → pin it in `pkgs/Brewfile` (e.g. `brew "node@22"`)
+- A required CLI tool is missing → add it to `pkgs/brew/essentials` (or `pkgs/brew/casks` for GUI apps)
+- A package needs a specific version → pin it in `pkgs/brew/essentials` (e.g. `node@22`)
 - A post-install step is needed → add it to `devbox/bin/rigging`
 - A shell environment variable needs to be set → add it to the appropriate dotfile in `config/`
 - A dotfile is missing or misconfigured → fix the source dotfile in `config/`
