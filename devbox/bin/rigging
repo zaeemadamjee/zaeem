@@ -401,20 +401,9 @@ cmd_gui() {
   fi
   log_ok "VirtIO GPU present (/dev/dri/card0)"
 
-  # ---- Add RustDesk apt repo ----------------------------------------------
-  if ! apt-cache show rustdesk &>/dev/null 2>&1; then
-    log_info "Adding RustDesk apt repo..."
-    curl -fsSL https://packagecloud.io/rustdesk/rustdesk/gpgkey \
-      | sudo gpg --dearmor -o /usr/share/keyrings/rustdesk.gpg
-    echo "deb [signed-by=/usr/share/keyrings/rustdesk.gpg] https://packagecloud.io/rustdesk/rustdesk/ubuntu/ noble main" \
-      | sudo tee /etc/apt/sources.list.d/rustdesk.list > /dev/null
-    sudo apt-get update -qq
-    log_ok "RustDesk apt repo"
-  else
-    log_info "RustDesk apt repo: already configured"
-  fi
-
   # ---- Install apt packages -----------------------------------------------
+  # RustDesk has no apt repo — it distributes only via GitHub releases.
+  # Install all other GUI packages via apt first, then install RustDesk .deb.
   local gui_pkgs=(
     xorg
     gnome-session
@@ -423,7 +412,6 @@ cmd_gui() {
     gnome-tweaks
     gdm3
     firefox
-    rustdesk
   )
 
   log_info "Installing GUI packages via apt (this takes a few minutes)..."
@@ -439,6 +427,32 @@ cmd_gui() {
     return 1
   fi
   rm -f "$_gui_log"
+
+  # ---- Install RustDesk from GitHub releases ------------------------------
+  # RustDesk publishes .deb packages to GitHub releases only (no apt repo).
+  # The -sciter variant has fewer dependencies (no webview/pipewire) which is
+  # better suited for a headless server.
+  if command -v rustdesk &>/dev/null; then
+    log_info "RustDesk: already installed"
+  else
+    log_info "RustDesk: fetching latest release info..."
+    local rd_version rd_url rd_deb
+    rd_version=$(curl -fsSL https://api.github.com/repos/rustdesk/rustdesk/releases/latest \
+      | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'])" 2>/dev/null) \
+      || { log_warn "RustDesk: failed to fetch release info"; _track_failed "rustdesk install"; return 1; }
+    rd_url="https://github.com/rustdesk/rustdesk/releases/download/${rd_version}/rustdesk-${rd_version}-x86_64-sciter.deb"
+    rd_deb="$(mktemp --suffix=.deb)"
+    log_info "RustDesk: downloading ${rd_version}..."
+    if curl -fsSL -o "$rd_deb" "$rd_url"; then
+      DEBIAN_FRONTEND=noninteractive sudo apt-get install -y "$rd_deb" >/dev/null 2>&1 \
+        && log_ok "RustDesk ${rd_version}" \
+        || { log_warn "RustDesk .deb install failed"; _track_failed "rustdesk install"; }
+    else
+      log_warn "RustDesk: download failed (${rd_url})"
+      _track_failed "rustdesk download"
+    fi
+    rm -f "$rd_deb"
+  fi
 
   # ---- Configure GDM3 for headless VirtIO GPU X session -------------------
   # Set GNOME session type to X11 (not Wayland) — Wayland headless on GCE
