@@ -77,5 +77,3 @@ eval "$(zoxide init zsh)"
 # --- atuin (shell history) ---
 command -v atuin &>/dev/null && eval "$(atuin init zsh)"
 
-# opencode
-export PATH="$HOME/.opencode/bin:$PATH"
