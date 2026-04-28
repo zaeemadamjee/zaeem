@@ -46,5 +46,5 @@ atuin
 neofetch
 
 # Cloud
-hashicorp/tap/terraform
-anomalyco/tap/opencode
+# terraform: not installed on devbox (run from Mac)
+# opencode:  installed via native script in rigging (no Linux brew bottle)
