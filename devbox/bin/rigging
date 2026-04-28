@@ -576,13 +576,15 @@ UNIT
   # Wait a moment for the RustDesk daemon IPC socket to be ready
   sleep 2
 
-  # Set options via CLI → IPC to running daemon
-  sudo -u "${USER}" rustdesk --password "$rd_password" || log_warn "Failed to set RustDesk password"
-  sudo -u "${USER}" rustdesk --option direct-server Y || true
-  sudo -u "${USER}" rustdesk --option direct-access-port 21118 || true
-  sudo -u "${USER}" rustdesk --option verification-method use-permanent-password || true
-  sudo -u "${USER}" rustdesk --option approve-mode password || true
-  sudo -u "${USER}" rustdesk --option whitelist 100.64.0.0/10 || true
+  # Set password and options via CLI → IPC to running daemon.
+  # RustDesk requires root for --password (checked with is_root() in source).
+  # --option also requires root when the package is "installed" (via .deb).
+  sudo rustdesk --password "$rd_password" || log_warn "Failed to set RustDesk password"
+  sudo rustdesk --option direct-server Y || true
+  sudo rustdesk --option direct-access-port 21118 || true
+  sudo rustdesk --option verification-method use-permanent-password || true
+  sudo rustdesk --option approve-mode password || true
+  sudo rustdesk --option whitelist 100.64.0.0/10 || true
   log_ok "RustDesk configured (direct IP, port 21118, Tailscale whitelist)"
 
   # ---- Print connection info -----------------------------------------------
