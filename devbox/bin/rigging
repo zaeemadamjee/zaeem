@@ -4,19 +4,19 @@
 # Usage: rigging [command]
 #
 # Commands:
-#   all        Run everything  (default)
-#   install    Homebrew + brew bundle
-#   link       Stow dotfiles + .hushlogin
-#   langs      Language toolchains via pkgs/lang/*
-#   tools      Claude code, opencode, TPM, atuin, tldr
-#   docker     Docker Engine + daemon + group membership
-#   tailscale  Install Tailscale daemon + authenticate
-#   idle       Systemd idle timer
-#   repos      Clone workspace repos from GCE metadata
-#   gui        Install GUI stack (GNOME + RustDesk) and start it
-#   gui-stop   Stop the GUI session (Xorg + GNOME + RustDesk daemon)
-#   check      Print ✓/✗ status without modifying anything
-#   help       Show this message
+#   all          Run everything  (default)
+#   install      Homebrew + brew bundle
+#   link         Stow dotfiles + .hushlogin
+#   langs        Language toolchains via pkgs/lang/*
+#   tools        Claude code, opencode, TPM, atuin, tldr
+#   docker       Docker Engine + daemon + group membership
+#   tailscale    Install Tailscale daemon + authenticate
+#   idle         Systemd idle timer
+#   repos        Clone workspace repos from GCE metadata
+#   gui          Install GUI stack (GNOME + RustDesk) and start it
+#   gui stop     Stop the GUI session (Xorg + GNOME + RustDesk daemon)
+#   check        Print ✓/✗ status without modifying anything
+#   help         Show this message
 #
 # Safe to re-run (idempotent).
 # Profile is read from DEVBOX_PROFILE env var or ~/.config/devbox/profile.
@@ -557,7 +557,7 @@ UNIT
   log_dim "  └───────────────────────────────────────────────────────────┘"
   echo
   log_dim "  Password is also stored at: $rd_config"
-  log_dim "  To stop the GUI:  rigging gui-stop"
+  log_dim "  To stop the GUI:  rigging gui stop"
   log_dim "  To check status:  rigging check"
   echo
 }
@@ -693,6 +693,7 @@ cmd_all() {
   cmd_tailscale
   cmd_idle
   cmd_repos
+  cmd_gui
   _secrets_check
   _summary
 }
@@ -705,19 +706,19 @@ cmd_help() {
   Usage: rigging [command]
 
   Commands:
-    all        Run everything  (default)
-    install    Homebrew + brew bundle
-    link       Stow dotfiles + .hushlogin
-    langs      Language toolchains via pkgs/lang/*
-    tools      Claude code, opencode, TPM, atuin, tldr
-    docker     Docker Engine + daemon + group membership
-    tailscale  Install Tailscale daemon + authenticate
-    idle       Systemd idle timer
-    repos      Clone workspace repos from GCE metadata
-    gui        Install GUI stack (GNOME + RustDesk) and start it
-    gui-stop   Stop the GUI session (Xorg + GNOME + RustDesk daemon)
-    check      Print ✓/✗ status without modifying anything
-    help       Show this message
+    all          Run everything  (default)
+    install      Homebrew + brew bundle
+    link         Stow dotfiles + .hushlogin
+    langs        Language toolchains via pkgs/lang/*
+    tools        Claude code, opencode, TPM, atuin, tldr
+    docker       Docker Engine + daemon + group membership
+    tailscale    Install Tailscale daemon + authenticate
+    idle         Systemd idle timer
+    repos        Clone workspace repos from GCE metadata
+    gui          Install GUI stack (GNOME + RustDesk) and start it
+    gui stop     Stop the GUI session (Xorg + GNOME + RustDesk daemon)
+    check        Print ✓/✗ status without modifying anything
+    help         Show this message
 
 EOF
 }
@@ -756,7 +757,7 @@ main() {
 
   # Subcommands that need the profile resolved first
   case "$cmd" in
-    all|install|link|langs|tools|docker|tailscale|idle|repos)
+    all|install|link|langs|tools|docker|tailscale|idle|repos|gui)
       _resolve_profile
       ;;
   esac
@@ -771,8 +772,18 @@ main() {
     tailscale) log_banner "rigging tailscale";  cmd_tailscale; _summary ;;
     idle)      log_banner "rigging idle";       cmd_idle;      _summary ;;
     repos)     log_banner "rigging repos";      cmd_repos;     _summary ;;
-    gui)       log_banner "rigging gui";       cmd_gui;      _summary ;;
-    gui-stop)  log_banner "rigging gui-stop";  cmd_gui_stop; _summary ;;
+    gui)
+      local subcmd="${1:-}"
+      case "$subcmd" in
+        stop) log_banner "rigging gui stop"; cmd_gui_stop; _summary ;;
+        "")   log_banner "rigging gui";      cmd_gui;      _summary ;;
+        *)
+          log_error "Unknown gui subcommand: $subcmd"
+          log_dim "Usage: rigging gui [stop]"
+          exit 1
+          ;;
+      esac
+      ;;
     check)     _resolve_profile; cmd_check ;;
     help|--help|-h) cmd_help ;;
     *)
