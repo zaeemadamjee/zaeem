@@ -81,7 +81,7 @@ cmd_link() {
 
   # zsh excluded — rigging manages shell init via cmd_shell, not by stowing
   # the Linux devbox .zshrc.
-  local packages="aliases atuin claude git ghostty nvim opencode starship tmux"
+  local packages="agents aliases atuin claude git ghostty nvim opencode starship tmux"
   local stow="${BREW_PREFIX}/bin/stow"
 
   for pkg in $packages; do
