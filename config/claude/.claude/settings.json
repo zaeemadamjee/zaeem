@@ -12,6 +12,7 @@
     }
   },
   "skipDangerousModePermissionPrompt": true,
+  "theme": "dark",
   "mcpServers": {
     "linear": {
       "type": "http",

@@ -36,5 +36,6 @@ FIREWALL_ALLOW_PORTS=(
 REPOS=(
   "git@github.com:bungeeapp/mirage-web.git",
   "git@github.com:bungeeapp/captions-whisper.git",
+  "git@github.com:bungeeapp/captions-server.git",
   "git@github.com:bungeeapp/jerboa.git"
 )

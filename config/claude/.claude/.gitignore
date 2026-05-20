@@ -1,0 +1,6 @@
+# Ignore everything local to this machine
+*
+
+# Keep shared/tracked files
+!.gitignore
+!settings.json
