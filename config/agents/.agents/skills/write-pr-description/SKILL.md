@@ -52,8 +52,6 @@ cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null \
   || cat .github/pull_request_template.md 2>/dev/null
 ```
 
-If a template exists, fill it in. If not, use the structure below.
-
 ---
 
 ## 4. Description structure
