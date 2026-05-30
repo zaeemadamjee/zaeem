@@ -5,6 +5,9 @@ export PATH="$HOME/.npm-global/bin:$PATH"      # npm globals
 export PATH="$HOME/.cargo/bin:$PATH"           # rust/cargo
 export PATH="$PATH:$HOME/go/bin"               # go workspace binaries
 
+# --- Browser (headless SSH: print URL instead of trying to open a display) ---
+export BROWSER="$HOME/zaeem/devbox/bin/browser"
+
 # --- SSH agent forwarding (stable socket so tmux panes stay connected) ---
 # Must run before tmux attach so the symlink is fresh when we re-enter an existing session.
 if [[ -n "$SSH_AUTH_SOCK" && "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" ]]; then
