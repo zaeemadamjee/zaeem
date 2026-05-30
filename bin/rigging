@@ -292,12 +292,14 @@ cmd_check() {
   command -v node    &>/dev/null && _chk "node"   ok || _chk "node"   fail
   command -v go      &>/dev/null && _chk "go"     ok || _chk "go"     fail
   command -v python3 &>/dev/null && _chk "python" ok || _chk "python" fail
+  command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail
 
   log_section "Tools"
   [[ -d "$HOME/.tmux/plugins/tpm" ]] && _chk "tpm"      ok || _chk "tpm"      fail
   command -v claude   &>/dev/null    && _chk "claude"   ok || _chk "claude"   fail
   command -v opencode &>/dev/null    && _chk "opencode" ok || _chk "opencode" fail
   command -v gcloud   &>/dev/null    && _chk "gcloud"   ok || _chk "gcloud"   fail
+  command -v orb      &>/dev/null    && _chk "orbstack" ok || _chk "orbstack" fail
 
   echo
   if [[ ${#missing[@]} -eq 0 ]]; then
