@@ -217,6 +217,41 @@ cmd_tools() {
       || { log_warn "opencode install failed"; _track_failed "opencode"; }
   fi
 
+  # xdg-open shim — OpenCode (and other tools) call xdg-open directly to launch
+  # browsers for OAuth flows. In a headless SSH session xdg-open either doesn't
+  # exist or fails with no DISPLAY. This shim delegates to $BROWSER when set
+  # (which prints the URL), or falls back to xdg-open from PATH if DISPLAY is
+  # available (GUI session via rigging gui).
+  local xdg_shim="$HOME/.local/bin/xdg-open"
+  if [[ -f "$xdg_shim" ]] && grep -q "devbox/bin/browser" "$xdg_shim" 2>/dev/null; then
+    log_info "xdg-open shim: already installed"
+  else
+    log_info "xdg-open shim: installing..."
+    mkdir -p "$HOME/.local/bin"
+    cat > "$xdg_shim" <<'XDG_SHIM'
+#!/usr/bin/env bash
+# xdg-open shim — installed by devbox/bin/rigging for headless OAuth support.
+# Delegates to $BROWSER when set; otherwise falls through to the real xdg-open
+# if a display is available (rigging gui session).
+URL="${1:-}"
+if [[ -n "${BROWSER:-}" ]]; then
+  exec "$BROWSER" "$URL"
+fi
+if [[ -n "${DISPLAY:-}" ]]; then
+  # Locate the real xdg-open, skipping this shim.
+  for _dir in /usr/bin /usr/local/bin; do
+    if [[ -x "$_dir/xdg-open" ]] && [[ "$_dir/xdg-open" != "$(realpath "$0")" ]]; then
+      exec "$_dir/xdg-open" "$URL"
+    fi
+  done
+fi
+# Fallback: print the URL so it can be opened manually.
+printf '\n  Open this URL in your browser:\n  %s\n\n' "$URL"
+XDG_SHIM
+    chmod +x "$xdg_shim"
+    log_ok "xdg-open shim"
+  fi
+
   log_info "Seeding tealdeer page cache..."
   tldr --update >/dev/null 2>&1 || true
 

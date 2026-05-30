@@ -5,7 +5,9 @@ export PATH="$HOME/.npm-global/bin:$PATH"      # npm globals
 export PATH="$HOME/.cargo/bin:$PATH"           # rust/cargo
 export PATH="$PATH:$HOME/go/bin"               # go workspace binaries
 
-# --- Browser (headless SSH: print URL instead of trying to open a display) ---
+# --- Browser (headless OAuth: print URL instead of failing to open a display) ---
+# OpenCode and other tools call xdg-open for OAuth flows; the shim at
+# ~/.local/bin/xdg-open (installed by rigging tools) delegates to $BROWSER.
 export BROWSER="$HOME/zaeem/devbox/bin/browser"
 
 # --- SSH agent forwarding (stable socket so tmux panes stay connected) ---
