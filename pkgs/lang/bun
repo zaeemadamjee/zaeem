@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v bun &>/dev/null; then
+  log_info "Bun already installed: $(bun --version)"
+else
+  log_info "Installing Bun..."
+  curl -fsSL https://bun.sh/install | bash
+  export PATH="$HOME/.bun/bin:$PATH"
+  log_ok "Bun $(bun --version)"
+fi
