@@ -131,14 +131,12 @@ eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
 # --- PATH ---
 export PATH="${BREW_PREFIX}/opt/rustup/bin:$PATH"  # rustup (keg-only)
 export PATH="$HOME/.local/bin:$PATH"               # claude code
-export PATH="$HOME/.npm-global/bin:$PATH"          # npm globals
+export PATH="$HOME/.bun/bin:$PATH"                 # bun
 export PATH="$HOME/.cargo/bin:$PATH"               # rust/cargo
 export PATH="$PATH:$HOME/go/bin"                   # go binaries
 
-# --- nvm ---
-export NVM_DIR="$HOME/.nvm"
-[[ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ]]                    && source "${BREW_PREFIX}/opt/nvm/nvm.sh"
-[[ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ]] && source "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
+# --- bun ---
+export BUN_INSTALL="$HOME/.bun"
 
 # --- Aliases ---
 [[ -f "$HOME/.aliases.sh" ]] && source "$HOME/.aliases.sh"
@@ -221,15 +219,6 @@ cmd_tools() {
   # claude code is installed via cask "claude-code" in pkgs/Brewfile
 
   # claude plugins
-  if [[ ! -d "$HOME/.claude/plugins/superpowers" ]]; then
-    log_info "claude superpowers plugin: installing..."
-    claude plugin install superpowers@claude-plugins-official \
-      && log_ok "superpowers plugin" \
-      || { log_warn "superpowers plugin failed"; _track_failed "superpowers plugin"; }
-  else
-    log_info "claude superpowers plugin: already installed"
-  fi
-
   if [[ ! -d "$HOME/.claude/plugins/impeccable" ]]; then
     log_info "claude impeccable plugin: installing..."
     claude plugin install impeccable@impeccable \
@@ -289,7 +278,7 @@ cmd_check() {
 
   log_section "Languages"
   command -v rustc   &>/dev/null && _chk "rust"   ok || _chk "rust"   fail
-  command -v node    &>/dev/null && _chk "node"   ok || _chk "node"   fail
+  command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail
   command -v go      &>/dev/null && _chk "go"     ok || _chk "go"     fail
   command -v python3 &>/dev/null && _chk "python" ok || _chk "python" fail
   command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail

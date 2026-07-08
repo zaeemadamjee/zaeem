@@ -12,4 +12,3 @@ terraform/*.tfstate.backup
 terraform/*.tfvars
 terraform/.terraform.lock.hcl
 *.bak
-docs/superpowers/*

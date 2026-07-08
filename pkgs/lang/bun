@@ -2,11 +2,23 @@
 
 set -euo pipefail
 
+export BUN_INSTALL="$HOME/.bun"
+
+# Make an existing install visible before deciding whether to install or upgrade.
+[[ -d "$BUN_INSTALL/bin" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
+
 if command -v bun &>/dev/null; then
-  log_info "Bun already installed: $(bun --version)"
+  log_info "bun already installed, updating: $(bun --version)"
+  bun upgrade
 else
-  log_info "Installing Bun..."
+  log_info "Installing bun..."
   curl -fsSL https://bun.sh/install | bash
-  export PATH="$HOME/.bun/bin:$PATH"
-  log_ok "Bun $(bun --version)"
+  export PATH="$BUN_INSTALL/bin:$PATH"
 fi
+
+if ! command -v bun &>/dev/null; then
+  log_error "bun not found on PATH after install — expected at $BUN_INSTALL/bin/bun"
+  exit 1
+fi
+
+log_ok "bun $(bun --version)"

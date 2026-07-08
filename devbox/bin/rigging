@@ -689,14 +689,13 @@ cmd_check() {
   }
 
   # Augment PATH so language checks find binaries installed outside Homebrew
-  # (cargo, nvm-managed node, go workspace). This matters when rigging check
+  # (cargo, bun, go workspace). This matters when rigging check
   # is invoked as a bash subprocess from welcome (which doesn't source .zshrc).
   [[ -f "${BREW_PREFIX}/bin/brew" ]] && eval "$("${BREW_PREFIX}/bin/brew" shellenv)" 2>/dev/null || true
   export PATH="${HOME}/.cargo/bin:${PATH}"
   export PATH="${BREW_PREFIX}/opt/rustup/bin:${PATH}"
-  export NVM_DIR="${HOME}/.nvm"
-  # shellcheck source=/dev/null
-  [[ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ]] && source "${BREW_PREFIX}/opt/nvm/nvm.sh" 2>/dev/null || true
+  export BUN_INSTALL="${HOME}/.bun"
+  export PATH="${BUN_INSTALL}/bin:${PATH}"
   export PATH="${HOME}/go/bin:${PATH}"
 
   log_section "Homebrew"
@@ -714,7 +713,7 @@ cmd_check() {
 
   log_section "Languages"
   command -v rustc   &>/dev/null && _chk "rust"   ok || _chk "rust"   fail
-  command -v node    &>/dev/null && _chk "node"   ok || _chk "node"   fail
+  command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail
   command -v go      &>/dev/null && _chk "go"     ok || _chk "go"     fail
   command -v python3 &>/dev/null && _chk "python" ok || _chk "python" fail
   command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail

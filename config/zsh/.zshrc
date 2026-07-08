@@ -1,7 +1,7 @@
 # --- PATH: tool install dirs (must come before welcome so rigging --check finds them) ---
 export PATH="$HOME/.local/bin:$PATH"           # claude code
 export PATH="$HOME/.opencode/bin:$PATH"        # opencode
-export PATH="$HOME/.npm-global/bin:$PATH"      # npm globals
+export PATH="$HOME/.bun/bin:$PATH"             # bun
 export PATH="$HOME/.cargo/bin:$PATH"           # rust/cargo
 export PATH="$PATH:$HOME/go/bin"               # go workspace binaries
 
@@ -52,10 +52,8 @@ BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 # rustup is keg-only — add to PATH explicitly
 [[ -d "${BREW_PREFIX}/opt/rustup/bin" ]] && export PATH="${BREW_PREFIX}/opt/rustup/bin:$PATH"
 
-# --- nvm (Node version manager — installed via Homebrew) ---
-export NVM_DIR="$HOME/.nvm"
-[[ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ]] && source "${BREW_PREFIX}/opt/nvm/nvm.sh"
-[[ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ]] && source "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"
+# --- bun (installed via pkgs/lang/bun) ---
+export BUN_INSTALL="$HOME/.bun"
 
 # --- Prompt (after Homebrew so starship is in PATH) ---
 eval "$(starship init zsh)"
