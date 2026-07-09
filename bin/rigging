@@ -218,16 +218,6 @@ cmd_tools() {
 
   # claude code is installed via cask "claude-code" in pkgs/Brewfile
 
-  # claude plugins
-  if [[ ! -d "$HOME/.claude/plugins/impeccable" ]]; then
-    log_info "claude impeccable plugin: installing..."
-    claude plugin install impeccable@impeccable \
-      && log_ok "impeccable plugin" \
-      || { log_warn "impeccable plugin failed"; _track_failed "impeccable plugin"; }
-  else
-    log_info "claude impeccable plugin: already installed"
-  fi
-
   # opencode is installed via brew "anomalyco/tap/opencode" in pkgs/Brewfile
 
   log_info "Seeding tealdeer page cache..."

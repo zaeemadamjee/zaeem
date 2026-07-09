@@ -1,18 +1,14 @@
 {
+  "model": "claude-fable-5",
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true,
-    "impeccable@impeccable": true
-  },
-  "extraKnownMarketplaces": {
-    "impeccable": {
-      "source": {
-        "source": "github",
-        "repo": "pbakaus/impeccable"
-      }
-    }
+    "code-simplifier@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true
   },
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark",
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto",
+  "agentPushNotifEnabled": true,
   "mcpServers": {
     "linear": {
       "type": "http",
