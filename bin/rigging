@@ -4,9 +4,11 @@
 # Usage: ./bin/rigging [command]
 #
 # Commands:
-#   all      Run install + link + shell + langs + tools  (default)
+#   all      Run install + link + agent-harness-configs + shell + langs + tools
 #   install  Run brew bundle from pkgs/Brewfile
 #   link     Stow config packages into ~ (dotfiles)
+#   agent-harness-configs       Seed missing agent harness config defaults
+#   reset-agent-harness-configs Restore repo-managed agent harness config defaults
 #   shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
 #   langs    Install language toolchains (sourced from pkgs/lang/*)
 #   tools    Install coding tools (claude code, opencode, TPM)
@@ -57,6 +59,8 @@ source "$REPO_ROOT/lib/log.sh"
 source "$REPO_ROOT/lib/brew.sh"
 # shellcheck source=../lib/banner.sh
 source "$REPO_ROOT/lib/banner.sh"
+# shellcheck source=../lib/agent-harness-configs.sh
+source "$REPO_ROOT/lib/agent-harness-configs.sh"
 
 # ---------------------------------------------------------------------------
 # Shared state
@@ -81,7 +85,7 @@ cmd_link() {
 
   # zsh excluded — rigging manages shell init via cmd_shell, not by stowing
   # the Linux devbox .zshrc.
-  local packages="agents aliases atuin claude git ghostty nvim opencode starship tmux"
+  local packages="aliases atuin git ghostty nvim starship tmux"
   local stow="${BREW_PREFIX}/bin/stow"
 
   for pkg in $packages; do
@@ -107,6 +111,18 @@ cmd_link() {
       && log_ok "$pkg" \
       || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
   done
+}
+
+cmd_agent_harness_configs() {
+  log_section "Agent harness configs"
+  agent_harness_configs_apply "$REPO_ROOT" seed
+  log_ok "Agent harness config defaults seeded"
+}
+
+cmd_reset_agent_harness_configs() {
+  log_section "Agent harness configs"
+  agent_harness_configs_apply "$REPO_ROOT" reset
+  log_ok "Agent harness config defaults restored"
 }
 
 cmd_shell() {
@@ -254,10 +270,20 @@ cmd_check() {
 
   log_section "Dotfiles"
   local stow="${BREW_PREFIX}/bin/stow"
-  for pkg in aliases atuin claude git ghostty nvim opencode starship tmux; do
+  for pkg in aliases atuin git ghostty nvim starship tmux; do
     "$stow" -d "$CONFIG_DIR" -n "$pkg" -t "$HOME" &>/dev/null \
       && _chk "stow $pkg" ok || _chk "stow $pkg (already linked)" ok
   done
+
+  log_section "Agent harness configs"
+  [[ -f "$HOME/.claude/settings.json" ]] \
+    && _chk "Claude defaults" ok || _chk "Claude defaults" fail
+  [[ -f "$HOME/.codex/config.toml" ]] \
+    && _chk "Codex defaults" ok || _chk "Codex defaults" fail
+  [[ -f "$HOME/.config/opencode/opencode.json" ]] \
+    && _chk "OpenCode defaults" ok || _chk "OpenCode defaults" fail
+  [[ -d "$HOME/.agents/skills" ]] \
+    && _chk "Agent skills" ok || _chk "Agent skills" fail
 
   log_section "Shell"
   local managed_file="$HOME/.config/zaeem/shell.zsh"
@@ -293,6 +319,7 @@ cmd_all() {
   _setup_ssh
   cmd_install
   cmd_link
+  cmd_agent_harness_configs
   cmd_shell
   cmd_langs
   cmd_tools
@@ -308,9 +335,13 @@ cmd_help() {
   Usage: ./bin/rigging [command]
 
   Commands:
-    all      Run install + link + shell + langs + tools  (default)
+    all      Run install + link + agent-harness-configs + shell + langs + tools
     install  Run brew bundle from pkgs/Brewfile
     link     Stow config packages into ~ (dotfiles)
+    agent-harness-configs
+             Seed missing Claude, Codex, OpenCode, and skill defaults
+    reset-agent-harness-configs
+             Restore repo-managed agent harness defaults; preserve other state
     shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
     langs    Install language toolchains (pkgs/lang/*)
     tools    Install coding tools (claude, opencode, TPM)
@@ -385,6 +416,12 @@ main() {
     all)     cmd_all ;;
     install) log_banner "rigging install"; cmd_install; _summary ;;
     link)    log_banner "rigging link";    cmd_link;    _summary ;;
+    agent-harness-configs)
+      log_banner "rigging agent-harness-configs"; cmd_agent_harness_configs; _summary
+      ;;
+    reset-agent-harness-configs)
+      log_banner "rigging reset-agent-harness-configs"; cmd_reset_agent_harness_configs; _summary
+      ;;
     shell)   log_banner "rigging shell";   cmd_shell;   _summary ;;
     langs)   log_banner "rigging langs";   cmd_langs;   _summary ;;
     tools)   log_banner "rigging tools";   cmd_tools;   _summary ;;

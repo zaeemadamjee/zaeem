@@ -7,6 +7,8 @@
 #   all          Run everything  (default)
 #   install      Homebrew + brew bundle
 #   link         Stow dotfiles + .hushlogin
+#   agent-harness-configs       Seed missing agent harness config defaults
+#   reset-agent-harness-configs Restore repo-managed agent harness config defaults
 #   langs        Language toolchains via pkgs/lang/*
 #   tools        Claude code, opencode, TPM, atuin, tldr
 #   docker       Docker Engine + daemon + group membership
@@ -35,6 +37,8 @@ export DEVBOX_BIN_DIR REPO_ROOT CONFIG_DIR DEVBOX_DIR BREW_PREFIX
 source "$REPO_ROOT/lib/log.sh"
 # shellcheck source=../../lib/brew.sh
 source "$REPO_ROOT/lib/brew.sh"
+# shellcheck source=../../lib/agent-harness-configs.sh
+source "$REPO_ROOT/lib/agent-harness-configs.sh"
 
 # ---------------------------------------------------------------------------
 # Profile resolution
@@ -141,7 +145,7 @@ cmd_link() {
     log_info ".hushlogin already present"
   fi
 
-  local packages="aliases atuin claude git ghostty nvim opencode starship tmux zsh"
+  local packages="aliases atuin git ghostty nvim starship tmux zsh"
   local stow="${BREW_PREFIX}/bin/stow"
 
   # Remove plain files that would block stow (e.g. the Terraform .zshrc stub,
@@ -165,6 +169,18 @@ cmd_link() {
       && log_ok "$pkg" \
       || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
   done
+}
+
+cmd_agent_harness_configs() {
+  log_section "Agent harness configs"
+  agent_harness_configs_apply "$REPO_ROOT" seed
+  log_ok "Agent harness config defaults seeded"
+}
+
+cmd_reset_agent_harness_configs() {
+  log_section "Agent harness configs"
+  agent_harness_configs_apply "$REPO_ROOT" reset
+  log_ok "Agent harness config defaults restored"
 }
 
 cmd_langs() {
@@ -706,10 +722,20 @@ cmd_check() {
   [[ -f "$HOME/.hushlogin" ]] \
     && _chk ".hushlogin" ok || _chk ".hushlogin" fail
   local stow="${BREW_PREFIX}/bin/stow"
-  for pkg in aliases atuin claude git ghostty nvim opencode starship tmux zsh; do
+  for pkg in aliases atuin git ghostty nvim starship tmux zsh; do
     "$stow" -d "$CONFIG_DIR" -n "$pkg" -t "$HOME" &>/dev/null \
       && _chk "stow $pkg" ok || _chk "stow $pkg (already linked)" ok
   done
+
+  log_section "Agent harness configs"
+  [[ -f "$HOME/.claude/settings.json" ]] \
+    && _chk "Claude defaults" ok || _chk "Claude defaults" fail
+  [[ -f "$HOME/.codex/config.toml" ]] \
+    && _chk "Codex defaults" ok || _chk "Codex defaults" fail
+  [[ -f "$HOME/.config/opencode/opencode.json" ]] \
+    && _chk "OpenCode defaults" ok || _chk "OpenCode defaults" fail
+  [[ -d "$HOME/.agents/skills" ]] \
+    && _chk "Agent skills" ok || _chk "Agent skills" fail
 
   log_section "Languages"
   command -v rustc   &>/dev/null && _chk "rust"   ok || _chk "rust"   fail
@@ -795,6 +821,7 @@ cmd_all() {
   log_banner "rigging"
   cmd_install
   cmd_link
+  cmd_agent_harness_configs
   cmd_langs
   cmd_tools
   cmd_docker
@@ -818,6 +845,10 @@ cmd_help() {
     all          Run everything  (default)
     install      Homebrew + brew bundle
     link         Stow dotfiles + .hushlogin
+    agent-harness-configs
+                 Seed missing Claude, Codex, OpenCode, and skill defaults
+    reset-agent-harness-configs
+                 Restore repo-managed agent harness defaults; preserve other state
     langs        Language toolchains via pkgs/lang/*
     tools        Claude code, opencode, TPM, atuin, tldr
     docker       Docker Engine + daemon + group membership
@@ -876,6 +907,12 @@ main() {
     all)            cmd_all ;;
     install)   log_banner "rigging install";    cmd_install;   _summary ;;
     link)      log_banner "rigging link";       cmd_link;      _summary ;;
+    agent-harness-configs)
+      log_banner "rigging agent-harness-configs"; cmd_agent_harness_configs; _summary
+      ;;
+    reset-agent-harness-configs)
+      log_banner "rigging reset-agent-harness-configs"; cmd_reset_agent_harness_configs; _summary
+      ;;
     langs)     log_banner "rigging langs";      cmd_langs;     _summary ;;
     tools)     log_banner "rigging tools";      cmd_tools;     _summary ;;
     docker)    log_banner "rigging docker";     cmd_docker;    _summary ;;

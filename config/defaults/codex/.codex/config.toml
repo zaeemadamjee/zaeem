@@ -1,0 +1,85 @@
+model = "gpt-5.6-sol"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+service_tier = "priority"
+
+[marketplaces.ponytail]
+source_type = "git"
+source = "https://github.com/DietrichGebert/ponytail.git"
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."github@openai-curated"]
+enabled = true
+
+[plugins."notion@openai-curated"]
+enabled = true
+
+[plugins."linear@openai-curated"]
+enabled = true
+
+[plugins."chrome@openai-bundled"]
+enabled = true
+
+[plugins."figma@openai-curated"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."sites@openai-bundled"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = true
+
+[plugins."ponytail@ponytail"]
+enabled = true
+
+[plugins."visualize@openai-bundled"]
+enabled = true
+
+[desktop]
+ambient-suggestions-enabled = false
+appearanceDarkCodeThemeId = "github"
+preventSleepWhileRunning = true
+keepRemoteControlAwakeWhilePluggedIn = true
+git-show-sidebar-pr-icons = true
+conversationDetailMode = "STEPS_COMMANDS"
+appearanceTheme = "light"
+git-create-pull-request-as-draft = true
+reviewDelivery = "detached"
+followUpQueueMode = "queue"
+dock-icon-preference = "codex-system"
+usePointerCursors = false
+show-context-window-usage = true
+enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "ultra", "max"]
+
+[desktop.appearanceDarkChromeTheme]
+accent = "#1f6feb"
+contrast = 60
+ink = "#e6edf3"
+opaqueWindows = false
+surface = "#0d1117"
+
+[desktop.appearanceDarkChromeTheme.fonts]
+code = '"Jetbrains Mono"'
+ui = "Inter"
+
+[desktop.appearanceDarkChromeTheme.semanticColors]
+diffAdded = "#3fb950"
+diffRemoved = "#f85149"
+skill = "#bc8cff"
+
+[features]
+js_repl = false

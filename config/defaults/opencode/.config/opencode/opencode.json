@@ -9,6 +9,10 @@
     "linear": {
       "type": "remote",
       "url": "https://mcp.linear.app/mcp"
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["bun", "x", "chrome-devtools-mcp@latest"]
     }
   },
   "permission": {
