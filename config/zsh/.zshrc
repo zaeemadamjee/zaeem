@@ -49,8 +49,6 @@ alias shutdown='sudo poweroff'
 # --- Homebrew (manages python, go, rust, etc.) ---
 BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 [[ -f "${BREW_PREFIX}/bin/brew" ]] && eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
-# rustup is keg-only — add to PATH explicitly
-[[ -d "${BREW_PREFIX}/opt/rustup/bin" ]] && export PATH="${BREW_PREFIX}/opt/rustup/bin:$PATH"
 
 # --- bun (installed via pkgs/lang/bun) ---
 export BUN_INSTALL="$HOME/.bun"

@@ -186,10 +186,6 @@ cmd_reset_agent_harness_configs() {
 cmd_langs() {
   log_section "Languages"
 
-  # rustup is keg-only — add its bin dir to PATH before the rust lang file runs.
-  local brew_rustup="${BREW_PREFIX}/opt/rustup/bin"
-  [[ -d "$brew_rustup" ]] && export PATH="$brew_rustup:$PATH"
-
   for script in "$REPO_ROOT/pkgs/lang"/*; do
     [[ -f "$script" ]] || continue
     local name
@@ -709,7 +705,6 @@ cmd_check() {
   # is invoked as a bash subprocess from welcome (which doesn't source .zshrc).
   [[ -f "${BREW_PREFIX}/bin/brew" ]] && eval "$("${BREW_PREFIX}/bin/brew" shellenv)" 2>/dev/null || true
   export PATH="${HOME}/.cargo/bin:${PATH}"
-  export PATH="${BREW_PREFIX}/opt/rustup/bin:${PATH}"
   export BUN_INSTALL="${HOME}/.bun"
   export PATH="${BUN_INSTALL}/bin:${PATH}"
   export PATH="${HOME}/go/bin:${PATH}"

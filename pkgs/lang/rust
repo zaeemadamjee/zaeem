@@ -16,7 +16,7 @@ if ! rustup toolchain list 2>/dev/null | grep -q stable; then
   rustup default stable
 fi
 
-# ~/.cargo/env is created by the standalone rustup installer but not by Homebrew.
+# ~/.cargo/env is created by the standalone rustup installer.
 # Source it when present; otherwise add ~/.cargo/bin to PATH directly.
 if [[ -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"

@@ -9,10 +9,6 @@ git-delta
 tmux
 stow
 
-# Language managers (runtimes installed by pkgs/lang/* scripts)
-# bun: installed via native script in pkgs/lang/bun (official installer)
-rustup
-
 # Core CLI utilities
 ripgrep
 fzf

@@ -145,7 +145,6 @@ export BREW_PREFIX="/opt/homebrew"
 eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
 
 # --- PATH ---
-export PATH="${BREW_PREFIX}/opt/rustup/bin:$PATH"  # rustup (keg-only)
 export PATH="$HOME/.local/bin:$PATH"               # claude code
 export PATH="$HOME/.bun/bin:$PATH"                 # bun
 export PATH="$HOME/.cargo/bin:$PATH"               # rust/cargo
@@ -204,10 +203,6 @@ EOF
 
 cmd_langs() {
   log_section "Languages"
-
-  # rustup is keg-only — add its bin dir to PATH before the rust lang file runs.
-  local brew_rustup="${BREW_PREFIX}/opt/rustup/bin"
-  [[ -d "$brew_rustup" ]] && export PATH="$brew_rustup:$PATH"
 
   for script in "$REPO_ROOT/pkgs/lang"/*; do
     [[ -f "$script" ]] || continue

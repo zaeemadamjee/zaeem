@@ -13,6 +13,7 @@ alias c='clear'
 
 # --- git ---
 alias gs='git status'
+alias gf='git fetch'
 alias gst='git status'
 alias gd='git diff'
 alias gl='git log --oneline -20'
@@ -36,7 +37,7 @@ alias cc='claude'
 alias ccd='claude --dangerously-skip-permissions'
 
 # --- opencode ---
-alias oc='opencode web --hostname 0.0.0.0 --port 4096 --mdns & sleep 1 && opencode attach http://localhost:4096'
+alias oc='opencode web --hostname 0.0.0.0 --port 4096 --mdns'
 
 # --- gcloud ---
 alias gauth='gcloud auth login'

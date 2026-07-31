@@ -8,7 +8,7 @@ tools:
   glob: true
   list: true
   skill: true
-  webfetch: false
+  webfetch: true
   write: false
   edit: false
   patch: false

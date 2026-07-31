@@ -1,5 +1,4 @@
 {
-  "model": "claude-fable-5",
   "enabledPlugins": {
     "code-simplifier@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
@@ -13,6 +12,14 @@
     "linear": {
       "type": "http",
       "url": "https://mcp.linear.app/mcp"
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
     }
   }
 }
