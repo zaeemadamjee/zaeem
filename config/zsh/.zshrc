@@ -5,6 +5,10 @@ export PATH="$HOME/.bun/bin:$PATH"             # bun
 export PATH="$HOME/.cargo/bin:$PATH"           # rust/cargo
 export PATH="$PATH:$HOME/go/bin"               # go workspace binaries
 
+# --- Editor ---
+export EDITOR="druk"
+export VISUAL="druk"
+
 # --- Browser (headless OAuth: print URL instead of failing to open a display) ---
 # OpenCode and other tools call xdg-open for OAuth flows; the shim at
 # ~/.local/bin/xdg-open (installed by rigging tools) delegates to $BROWSER.

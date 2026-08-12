@@ -145,7 +145,7 @@ cmd_link() {
     log_info ".hushlogin already present"
   fi
 
-  local packages="aliases atuin git ghostty nvim starship tmux zsh"
+  local packages="aliases atuin druk git ghostty starship tmux zsh"
   local stow="${BREW_PREFIX}/bin/stow"
 
   # Remove plain files that would block stow (e.g. the Terraform .zshrc stub,
@@ -717,7 +717,7 @@ cmd_check() {
   [[ -f "$HOME/.hushlogin" ]] \
     && _chk ".hushlogin" ok || _chk ".hushlogin" fail
   local stow="${BREW_PREFIX}/bin/stow"
-  for pkg in aliases atuin git ghostty nvim starship tmux zsh; do
+  for pkg in aliases atuin druk git ghostty starship tmux zsh; do
     "$stow" -d "$CONFIG_DIR" -n "$pkg" -t "$HOME" &>/dev/null \
       && _chk "stow $pkg" ok || _chk "stow $pkg (already linked)" ok
   done

@@ -3,7 +3,7 @@
     email = zaeem@adamjee.com
 
 [core]
-    editor = vim
+    editor = druk
     autocrlf = input
     pager = delta
 

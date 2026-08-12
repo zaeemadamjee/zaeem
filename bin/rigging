@@ -85,7 +85,7 @@ cmd_link() {
 
   # zsh excluded — rigging manages shell init via cmd_shell, not by stowing
   # the Linux devbox .zshrc.
-  local packages="aliases atuin git ghostty nvim starship tmux"
+  local packages="aliases atuin druk git ghostty starship tmux"
   local stow="${BREW_PREFIX}/bin/stow"
 
   for pkg in $packages; do
@@ -152,6 +152,10 @@ export PATH="$PATH:$HOME/go/bin"                   # go binaries
 
 # --- bun ---
 export BUN_INSTALL="$HOME/.bun"
+
+# --- Editor ---
+export EDITOR="druk"
+export VISUAL="druk"
 
 # --- Aliases ---
 [[ -f "$HOME/.aliases.sh" ]] && source "$HOME/.aliases.sh"
@@ -265,7 +269,7 @@ cmd_check() {
 
   log_section "Dotfiles"
   local stow="${BREW_PREFIX}/bin/stow"
-  for pkg in aliases atuin git ghostty nvim starship tmux; do
+  for pkg in aliases atuin druk git ghostty starship tmux; do
     "$stow" -d "$CONFIG_DIR" -n "$pkg" -t "$HOME" &>/dev/null \
       && _chk "stow $pkg" ok || _chk "stow $pkg (already linked)" ok
   done
