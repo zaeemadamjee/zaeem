@@ -4,11 +4,11 @@
 # Usage: ./bin/rigging [command]
 #
 # Commands:
-#   all      Run install + link + agent-harness-configs + shell + langs + tools
+#   all      Run install + link + harness-seed + shell + langs + tools
 #   install  Run brew bundle from pkgs/Brewfile
 #   link     Stow config packages into ~ (dotfiles)
-#   agent-harness-configs       Seed missing agent harness config defaults
-#   reset-agent-harness-configs Restore repo-managed agent harness config defaults
+#   harness-seed  Seed missing agent harness config defaults
+#   harness-reset Restore repo-managed agent harness config defaults
 #   shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
 #   langs    Install language toolchains (sourced from pkgs/lang/*)
 #   tools    Install coding tools (claude code, opencode, TPM)
@@ -113,13 +113,13 @@ cmd_link() {
   done
 }
 
-cmd_agent_harness_configs() {
+cmd_harness_seed() {
   log_section "Agent harness configs"
   agent_harness_configs_apply "$REPO_ROOT" seed
   log_ok "Agent harness config defaults seeded"
 }
 
-cmd_reset_agent_harness_configs() {
+cmd_harness_reset() {
   log_section "Agent harness configs"
   agent_harness_configs_apply "$REPO_ROOT" reset
   log_ok "Agent harness config defaults restored"
@@ -324,7 +324,7 @@ cmd_all() {
   _setup_ssh
   cmd_install
   cmd_link
-  cmd_agent_harness_configs
+  cmd_harness_seed
   cmd_shell
   cmd_langs
   cmd_tools
@@ -340,12 +340,12 @@ cmd_help() {
   Usage: ./bin/rigging [command]
 
   Commands:
-    all      Run install + link + agent-harness-configs + shell + langs + tools
+    all      Run install + link + harness-seed + shell + langs + tools
     install  Run brew bundle from pkgs/Brewfile
     link     Stow config packages into ~ (dotfiles)
-    agent-harness-configs
+    harness-seed
              Seed missing Claude, Codex, OpenCode, and skill defaults
-    reset-agent-harness-configs
+    harness-reset
              Restore repo-managed agent harness defaults; preserve other state
     shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
     langs    Install language toolchains (pkgs/lang/*)
@@ -421,11 +421,11 @@ main() {
     all)     cmd_all ;;
     install) log_banner "rigging install"; cmd_install; _summary ;;
     link)    log_banner "rigging link";    cmd_link;    _summary ;;
-    agent-harness-configs)
-      log_banner "rigging agent-harness-configs"; cmd_agent_harness_configs; _summary
+    harness-seed)
+      log_banner "rigging harness-seed"; cmd_harness_seed; _summary
       ;;
-    reset-agent-harness-configs)
-      log_banner "rigging reset-agent-harness-configs"; cmd_reset_agent_harness_configs; _summary
+    harness-reset)
+      log_banner "rigging harness-reset"; cmd_harness_reset; _summary
       ;;
     shell)   log_banner "rigging shell";   cmd_shell;   _summary ;;
     langs)   log_banner "rigging langs";   cmd_langs;   _summary ;;
