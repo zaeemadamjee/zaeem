@@ -146,12 +146,18 @@ eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
 
 # --- PATH ---
 export PATH="$HOME/.local/bin:$PATH"               # claude code
+export PATH="$HOME/.npm-global/bin:$PATH"          # npm globals
 export PATH="$HOME/.bun/bin:$PATH"                 # bun
 export PATH="$HOME/.cargo/bin:$PATH"               # rust/cargo
 export PATH="$PATH:$HOME/go/bin"                   # go binaries
 
 # --- bun ---
 export BUN_INSTALL="$HOME/.bun"
+
+# --- nvm ---
+export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]]           && source "$NVM_DIR/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]]  && source "$NVM_DIR/bash_completion"
 
 # --- Editor ---
 export EDITOR="druk"
@@ -293,7 +299,7 @@ cmd_check() {
 
   log_section "Languages"
   command -v rustc   &>/dev/null && _chk "rust"   ok || _chk "rust"   fail
-  command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail
+  command -v node    &>/dev/null && _chk "node"   ok || _chk "node"   fail
   command -v go      &>/dev/null && _chk "go"     ok || _chk "go"     fail
   command -v python3 &>/dev/null && _chk "python" ok || _chk "python" fail
   command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail

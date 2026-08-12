@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export NVM_DIR="$HOME/.nvm"
+
+# nvm is installed via its official installer script, matching bun/rustup
+# (native installers, not Homebrew — see pkgs/lang/bun and pkgs/lang/rust).
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  log_info "nvm already installed"
+else
+  log_info "Installing nvm..."
+  # PROFILE=/dev/null: rigging manages shell init itself (cmd_shell / .zshrc),
+  # so skip nvm's own rc-file patching.
+  PROFILE=/dev/null bash -c "$(curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh)"
+  log_ok "nvm installed"
+fi
+
+# libatomic1 is required by Node.js binaries on Ubuntu 24.04 but not present by default.
+if [[ "$(uname -s)" == "Linux" ]]; then
+  if dpkg -s libatomic1 &>/dev/null 2>&1; then
+    log_info "libatomic1 already installed"
+  else
+    log_info "Installing libatomic1 (Node.js dependency)..."
+    sudo apt-get install -y libatomic1
+    log_ok "libatomic1"
+  fi
+fi
+
+# shellcheck source=/dev/null
+source "$NVM_DIR/nvm.sh"
+
+if command -v node &>/dev/null; then
+  log_info "Node.js already installed: $(node --version)"
+else
+  log_info "Installing Node.js stable..."
+  nvm install stable
+  nvm alias default stable
+  log_ok "Node.js $(node --version)"
+  log_dim "npm $(npm --version)"
+fi
