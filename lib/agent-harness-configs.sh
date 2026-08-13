@@ -37,21 +37,13 @@ _agent_harness_config_detach_legacy_stow() {
   fi
 }
 
-agent_harness_configs_apply() {
-  local repo_root="$1" mode="$2"
+agent_harness_configs_seed() {
+  local repo_root="$1"
   local defaults_root="$repo_root/config/defaults"
   local package source_root target_rel source_file rel_path destination
 
-  case "$mode" in
-    seed|reset) ;;
-    *)
-      printf 'agent_harness_configs_apply: expected seed or reset, got %s\n' "$mode" >&2
-      return 2
-      ;;
-  esac
-
   [[ -d "$defaults_root" ]] || {
-    printf 'agent_harness_configs_apply: defaults not found: %s\n' "$defaults_root" >&2
+    printf 'agent_harness_configs_seed: defaults not found: %s\n' "$defaults_root" >&2
     return 1
   }
 
@@ -69,16 +61,13 @@ agent_harness_configs_apply() {
       esac
       destination="$HOME/$rel_path"
 
-      if [[ "$mode" == "seed" && ( -e "$destination" || -L "$destination" ) ]]; then
+      if [[ -e "$destination" || -L "$destination" ]]; then
         continue
       fi
 
       mkdir -p "$(dirname "$destination")"
-      if [[ "$mode" == "reset" && -L "$destination" ]]; then
-        rm "$destination"
-      fi
       cp "$source_file" "$destination"
-      _agent_harness_config_log "$mode ~/$rel_path"
+      _agent_harness_config_log "seed ~/$rel_path"
     done < <(find "$source_root" -type f -print0)
   done
 }

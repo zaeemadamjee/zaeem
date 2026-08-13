@@ -7,8 +7,6 @@
 #   all          Run everything  (default)
 #   install      Homebrew + brew bundle
 #   link         Stow dotfiles + .hushlogin
-#   harness-seed  Seed missing agent harness config defaults
-#   harness-reset Restore repo-managed agent harness config defaults
 #   langs        Language toolchains via pkgs/lang/*
 #   tools        Claude code, opencode, TPM, atuin, tldr
 #   docker       Docker Engine + daemon + group membership
@@ -171,16 +169,10 @@ cmd_link() {
   done
 }
 
-cmd_harness_seed() {
+_seed_harness_configs() {
   log_section "Agent harness configs"
-  agent_harness_configs_apply "$REPO_ROOT" seed
+  agent_harness_configs_seed "$REPO_ROOT"
   log_ok "Agent harness config defaults seeded"
-}
-
-cmd_harness_reset() {
-  log_section "Agent harness configs"
-  agent_harness_configs_apply "$REPO_ROOT" reset
-  log_ok "Agent harness config defaults restored"
 }
 
 cmd_langs() {
@@ -819,7 +811,7 @@ cmd_all() {
   log_banner "rigging"
   cmd_install
   cmd_link
-  cmd_harness_seed
+  _seed_harness_configs
   cmd_langs
   cmd_tools
   cmd_docker
@@ -843,10 +835,6 @@ cmd_help() {
     all          Run everything  (default)
     install      Homebrew + brew bundle
     link         Stow dotfiles + .hushlogin
-    harness-seed
-                 Seed missing Claude, Codex, OpenCode, and skill defaults
-    harness-reset
-                 Restore repo-managed agent harness defaults; preserve other state
     langs        Language toolchains via pkgs/lang/*
     tools        Claude code, opencode, TPM, atuin, tldr
     docker       Docker Engine + daemon + group membership
@@ -905,12 +893,6 @@ main() {
     all)            cmd_all ;;
     install)   log_banner "rigging install";    cmd_install;   _summary ;;
     link)      log_banner "rigging link";       cmd_link;      _summary ;;
-    harness-seed)
-      log_banner "rigging harness-seed"; cmd_harness_seed; _summary
-      ;;
-    harness-reset)
-      log_banner "rigging harness-reset"; cmd_harness_reset; _summary
-      ;;
     langs)     log_banner "rigging langs";      cmd_langs;     _summary ;;
     tools)     log_banner "rigging tools";      cmd_tools;     _summary ;;
     docker)    log_banner "rigging docker";     cmd_docker;    _summary ;;
