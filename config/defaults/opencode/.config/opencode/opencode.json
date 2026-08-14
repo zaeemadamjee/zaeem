@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-scheduler", "./pushover-notify.js"],
+  "plugin": ["opencode-scheduler", "./pushover-notify.js", "octto"],
   "mcp": {
     "notion": {
       "type": "remote",
@@ -9,6 +9,10 @@
     "linear": {
       "type": "remote",
       "url": "https://mcp.linear.app/mcp"
+    },
+    "jira": {
+      "type": "remote",
+      "url": "https://mcp.atlassian.com/v1/mcp/authv2"
     },
     "figma": {
       "type": "remote",

@@ -1,5 +1,5 @@
 ---
-model: anthropic/claude-opus-4-6
+model: anthropic/claude-opus-5
 temperature: 0.2
 tools:
   bash: true
