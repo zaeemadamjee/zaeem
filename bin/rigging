@@ -138,6 +138,7 @@ eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
 
 # --- PATH ---
 export PATH="$HOME/.local/bin:$PATH"               # claude code
+export PATH="$HOME/.opencode/bin:$PATH"            # opencode
 export PATH="$HOME/.npm-global/bin:$PATH"          # npm globals
 export PATH="$HOME/.bun/bin:$PATH"                 # bun
 export PATH="$HOME/.cargo/bin:$PATH"               # rust/cargo
@@ -229,9 +230,18 @@ cmd_tools() {
       || { log_warn "tmux plugin manager failed"; _track_failed "tpm"; }
   fi
 
-  # claude code is installed via cask "claude-code" in pkgs/Brewfile
+  # claude code is installed via cask "claude-code" in pkgs/brew/casks
 
-  # opencode is installed via brew "anomalyco/tap/opencode" in pkgs/Brewfile
+  # opencode — no bottled brew formula (would build from source), install via
+  # native script instead, matching devbox/bin/rigging
+  if command -v opencode &>/dev/null; then
+    log_info "opencode: already installed"
+  else
+    log_info "opencode: installing..."
+    curl -fsSL https://opencode.ai/install | bash \
+      && log_ok "opencode" \
+      || { log_warn "opencode install failed"; _track_failed "opencode"; }
+  fi
 
   log_info "Seeding tealdeer page cache..."
   tldr --update >/dev/null 2>&1 || true
