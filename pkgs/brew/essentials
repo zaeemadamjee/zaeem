@@ -40,7 +40,7 @@ zellij
 # Prompt & shell history
 starship
 atuin
-neofetch
+fastfetch
 
 # Cloud
 # terraform: not installed on devbox (run from Mac)

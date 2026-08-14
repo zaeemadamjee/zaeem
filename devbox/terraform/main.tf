@@ -144,9 +144,17 @@ resource "google_compute_instance" "devbox" {
       echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" \
         > /etc/apt/sources.list.d/charm.list
 
+      # fastfetch isn't packaged in Ubuntu 24.04's default repos (Ubuntu 25.04+
+      # only) — use the upstream-recommended PPA instead.
+      echo "[startup] Adding fastfetch apt repo..."
+      curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xEB65EE19D802F3EB1A13CFE47E2E5CB4D4865F21" \
+        | gpg --dearmor -o /etc/apt/keyrings/fastfetch.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/fastfetch.gpg] https://ppa.launchpadcontent.net/zhangsongcui3371/fastfetch/ubuntu noble main" \
+        > /etc/apt/sources.list.d/fastfetch.list
+
       echo "[startup] Installing system packages..."
       apt-get update -y
-      apt-get install -y git curl zsh neofetch
+      apt-get install -y git curl zsh fastfetch
 
       echo "[startup] Suppressing Ubuntu MOTD..."
       touch /home/zaeem/.hushlogin
