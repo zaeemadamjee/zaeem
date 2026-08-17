@@ -25,6 +25,12 @@ enabled = true
 [plugins."linear@openai-curated"]
 enabled = true
 
+[plugins."atlassian-rovo@openai-curated"]
+enabled = true
+
+[plugins."slack@openai-curated"]
+enabled = true
+
 [plugins."chrome@openai-bundled"]
 enabled = true
 
@@ -51,12 +57,10 @@ enabled = true
 
 [desktop]
 ambient-suggestions-enabled = false
-appearanceDarkCodeThemeId = "github"
 preventSleepWhileRunning = true
 keepRemoteControlAwakeWhilePluggedIn = true
 git-show-sidebar-pr-icons = true
 conversationDetailMode = "STEPS_COMMANDS"
-appearanceTheme = "light"
 git-create-pull-request-as-draft = true
 reviewDelivery = "detached"
 followUpQueueMode = "queue"
@@ -65,21 +69,8 @@ usePointerCursors = false
 show-context-window-usage = true
 enabled-reasoning-efforts = ["low", "medium", "high", "xhigh", "ultra", "max"]
 
-[desktop.appearanceDarkChromeTheme]
-accent = "#1f6feb"
-contrast = 60
-ink = "#e6edf3"
-opaqueWindows = false
-surface = "#0d1117"
-
-[desktop.appearanceDarkChromeTheme.fonts]
-code = '"Jetbrains Mono"'
-ui = "Inter"
-
-[desktop.appearanceDarkChromeTheme.semanticColors]
-diffAdded = "#3fb950"
-diffRemoved = "#f85149"
-skill = "#bc8cff"
-
 [features]
 js_repl = false
+
+[mcp_servers.posthog]
+url = "https://mcp.posthog.com/mcp"
