@@ -9,6 +9,7 @@
 #   link         Stow dotfiles + .hushlogin
 #   langs        Language toolchains via pkgs/lang/*
 #   tools        Claude code, opencode, TPM, atuin, tldr
+#   skills       Force re-copy skills from repo into ~/.agents/skills and ~/.claude/skills
 #   docker       Docker Engine + daemon + group membership
 #   tailscale    Install Tailscale daemon + authenticate
 #   idle         Systemd idle timer
@@ -173,6 +174,12 @@ _seed_harness_configs() {
   log_section "Agent harness configs"
   agent_harness_configs_seed "$REPO_ROOT"
   log_ok "Agent harness config defaults seeded"
+}
+
+cmd_skills() {
+  log_section "Agent skills"
+  agent_harness_skills_refresh "$REPO_ROOT"
+  log_ok "Skills refreshed from repo (~/.agents/skills and ~/.claude/skills overwritten; other settings untouched)"
 }
 
 cmd_langs() {
@@ -726,6 +733,8 @@ cmd_check() {
     && _chk "OpenCode defaults" ok || _chk "OpenCode defaults" fail
   [[ -d "$HOME/.agents/skills" ]] \
     && _chk "Agent skills" ok || _chk "Agent skills" fail
+  [[ -d "$HOME/.claude/skills" ]] \
+    && _chk "Claude skills" ok || _chk "Claude skills" fail
 
   log_section "Languages"
   command -v rustc   &>/dev/null && _chk "rust"   ok || _chk "rust"   fail
@@ -837,6 +846,7 @@ cmd_help() {
     link         Stow dotfiles + .hushlogin
     langs        Language toolchains via pkgs/lang/*
     tools        Claude code, opencode, TPM, atuin, tldr
+    skills       Force re-copy skills from repo, overwriting ~/.agents/skills and ~/.claude/skills
     docker       Docker Engine + daemon + group membership
     tailscale    Install Tailscale daemon + authenticate
     idle         Systemd idle timer
@@ -895,6 +905,7 @@ main() {
     link)      log_banner "rigging link";       cmd_link;      _summary ;;
     langs)     log_banner "rigging langs";      cmd_langs;     _summary ;;
     tools)     log_banner "rigging tools";      cmd_tools;     _summary ;;
+    skills)    log_banner "rigging skills";     cmd_skills;    _summary ;;
     docker)    log_banner "rigging docker";     cmd_docker;    _summary ;;
     tailscale) log_banner "rigging tailscale";  cmd_tailscale; _summary ;;
     idle)      log_banner "rigging idle";       cmd_idle;      _summary ;;

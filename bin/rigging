@@ -10,6 +10,7 @@
 #   shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
 #   langs    Install language toolchains (sourced from pkgs/lang/*)
 #   tools    Install coding tools (claude code, opencode, TPM)
+#   skills   Force re-copy skills from repo into ~/.agents/skills and ~/.claude/skills
 #   check    Print status of all components without modifying anything
 #   help     Show this message
 #
@@ -115,6 +116,12 @@ _seed_harness_configs() {
   log_section "Agent harness configs"
   agent_harness_configs_seed "$REPO_ROOT"
   log_ok "Agent harness config defaults seeded"
+}
+
+cmd_skills() {
+  log_section "Agent skills"
+  agent_harness_skills_refresh "$REPO_ROOT"
+  log_ok "Skills refreshed from repo (~/.agents/skills and ~/.claude/skills overwritten; other settings untouched)"
 }
 
 cmd_shell() {
@@ -291,6 +298,8 @@ cmd_check() {
     && _chk "OpenCode defaults" ok || _chk "OpenCode defaults" fail
   [[ -d "$HOME/.agents/skills" ]] \
     && _chk "Agent skills" ok || _chk "Agent skills" fail
+  [[ -d "$HOME/.claude/skills" ]] \
+    && _chk "Claude skills" ok || _chk "Claude skills" fail
 
   log_section "Shell"
   local managed_file="$HOME/.config/zaeem/shell.zsh"
@@ -348,6 +357,7 @@ cmd_help() {
     shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
     langs    Install language toolchains (pkgs/lang/*)
     tools    Install coding tools (claude, opencode, TPM)
+    skills   Force re-copy skills from repo, overwriting ~/.agents/skills and ~/.claude/skills
     check    Print status of all components without modifying anything
     help     Show this message
 
@@ -422,6 +432,7 @@ main() {
     shell)   log_banner "rigging shell";   cmd_shell;   _summary ;;
     langs)   log_banner "rigging langs";   cmd_langs;   _summary ;;
     tools)   log_banner "rigging tools";   cmd_tools;   _summary ;;
+    skills)  log_banner "rigging skills";  cmd_skills;  _summary ;;
     check)   cmd_check ;;
     help|--help|-h) cmd_help ;;
     *)
