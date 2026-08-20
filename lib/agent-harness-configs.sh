@@ -37,6 +37,29 @@ _agent_harness_config_detach_legacy_stow() {
   fi
 }
 
+_agent_harness_skills_seed() {
+  local repo_root="$1"
+  local source_root="$repo_root/skills"
+  local skill_dir name target destination
+
+  [[ -d "$source_root" ]] || return 0
+
+  for skill_dir in "$source_root"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    name="$(basename "$skill_dir")"
+
+    for target in "$HOME/.agents/skills" "$HOME/.claude/skills"; do
+      destination="$target/$name"
+      if [[ -e "$destination" || -L "$destination" ]]; then
+        continue
+      fi
+      mkdir -p "$target"
+      cp -R "$skill_dir" "$destination"
+      _agent_harness_config_log "seed ${destination/#$HOME/~}"
+    done
+  done
+}
+
 _agent_harness_skills_mirror_claude() {
   local agents_skills="$HOME/.agents/skills"
   local claude_skills="$HOME/.claude/skills"
@@ -61,7 +84,7 @@ _agent_harness_skills_mirror_claude() {
 
 agent_harness_skills_refresh() {
   local repo_root="$1"
-  local source_root="$repo_root/config/defaults/agents/.agents/skills"
+  local source_root="$repo_root/skills"
   local agents_skills="$HOME/.agents/skills"
   local claude_skills="$HOME/.claude/skills"
   local skill_dir name
@@ -121,5 +144,6 @@ agent_harness_configs_seed() {
     done < <(find "$source_root" -type f -print0)
   done
 
+  _agent_harness_skills_seed "$repo_root"
   _agent_harness_skills_mirror_claude
 }
