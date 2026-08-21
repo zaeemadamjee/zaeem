@@ -79,36 +79,49 @@ cmd_install() {
   export PATH="${BREW_PREFIX}/bin:$PATH"
 }
 
+_reconcile_stow_package() {
+  local pkg="$1"
+  local package_dir="$CONFIG_DIR/$pkg"
+  local source relative target
+
+  while IFS= read -r -d '' source; do
+    relative="${source#"$package_dir"/}"
+    target="$HOME/$relative"
+
+    if [[ "$source" -ef "$target" ]]; then
+      continue
+    fi
+
+    if [[ -L "$target" ]]; then
+      rm -f "$target" || return
+    elif [[ -f "$target" ]]; then
+      if cmp -s "$source" "$target"; then
+        rm -f "$target" || return
+      else
+        log_info "Backing up ~/$relative → ~/${relative}.bak"
+        mv "$target" "${target}.bak" || return
+      fi
+    fi
+  done < <(find "$package_dir" -type f -print0)
+}
+
 cmd_link() {
   log_section "Dotfiles"
 
   # zsh excluded — rigging manages shell init via cmd_shell, not by stowing
   # the Linux devbox .zshrc.
-  local packages="aliases atuin druk git ghostty starship tmux"
+  local packages=(aliases atuin druk git ghostty starship tmux)
   local stow="${BREW_PREFIX}/bin/stow"
+  local pkg
 
-  for pkg in $packages; do
-    # Dry-run to find conflicts — stow reports exactly which targets block it.
-    local conflicts
-    conflicts=$(
-      "$stow" -d "$CONFIG_DIR" "$pkg" -t "$HOME" --restow -n 2>&1 \
-      | grep "existing target is not owned by stow:" \
-      | sed 's/.*existing target is not owned by stow: //'
-    ) || true
-
-    for conflict in $conflicts; do
-      local ctarget="$HOME/$conflict"
-      if [[ -L "$ctarget" ]]; then
-        rm -f "$ctarget"                                        # stale symlink — remove
-      elif [[ -f "$ctarget" || -d "$ctarget" ]]; then
-        log_info "Backing up ~/$conflict → ~/${conflict}.bak"
-        mv "$ctarget" "${ctarget}.bak"                          # plain file/dir — back up
-      fi
-    done
-
-    "$stow" -d "$CONFIG_DIR" "$pkg" -t "$HOME" --restow \
-      && log_ok "$pkg" \
-      || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
+  for pkg in "${packages[@]}"; do
+    if _reconcile_stow_package "$pkg" \
+      && "$stow" -d "$CONFIG_DIR" "$pkg" -t "$HOME" --restow; then
+      log_ok "$pkg"
+    else
+      log_warn "stow $pkg failed"
+      _track_failed "stow $pkg"
+    fi
   done
 }
 

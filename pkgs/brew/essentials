@@ -21,7 +21,7 @@ make
 gcc
 vim
 neovim
-druk
+letstri/tap/druk
 
 # Modern CLI replacements
 bat
