@@ -3,10 +3,6 @@ model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 service_tier = "priority"
 
-[marketplaces.ponytail]
-source_type = "git"
-source = "https://github.com/DietrichGebert/ponytail.git"
-
 [plugins."documents@openai-primary-runtime"]
 enabled = true
 
@@ -47,9 +43,6 @@ enabled = true
 enabled = true
 
 [plugins."template-creator@openai-primary-runtime"]
-enabled = true
-
-[plugins."ponytail@ponytail"]
 enabled = true
 
 [plugins."visualize@openai-bundled"]
