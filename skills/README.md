@@ -14,7 +14,7 @@ Invoke any skill with a slash command, e.g. `/z-code`, `/no-comments`, `/unslop`
 
 - **Principles.** 21 `principle-*` leaf skills (laziness protocol, model the domain, prove it works, ...). z-code cites the ones that shaped each decision.
 - **Workflow.** `how` (explain a subsystem), `why` (recover the rationale behind code), `architect` (design before implementing), `arena` (N parallel attempts, pick and graft), `swarm`, `interrogate` (adversarial review), `reflect`, `figure-it-out`, `show-me-your-work`, `tdd`.
-- **Code quality.** `no-comments` (delete narrating comments), `unslop` (de-slop prose), `technical-writing` (docs, PR descriptions, commits), `typescript-best-practices`.
+- **Code quality.** `no-comments` (delete narrating comments), `better-tests` (gate whether a test is worth writing, enforce behavior-only test quality, hunt worthless tests via Test Sicko), `unslop` (de-slop prose), `technical-writing` (docs, PR descriptions, commits), `typescript-best-practices`.
 
 Stacked-PR playbooks (babysit, shipping, autopilot) auto-detect the stacking tool per repo: `gh stack`, then Graphite, then plain `gh`. See `z-code/references/stacking.md`.
 
