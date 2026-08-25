@@ -75,6 +75,7 @@ cmd_install() {
   log_section "Homebrew packages"
   _tap_from_file     "$REPO_ROOT/pkgs/brew/taps"
   _install_from_file "$REPO_ROOT/pkgs/brew/essentials"
+  _install_from_file "$REPO_ROOT/pkgs/brew/macos"
   _install_from_file "$REPO_ROOT/pkgs/brew/casks" --cask
   export PATH="${BREW_PREFIX}/bin:$PATH"
 }
@@ -329,11 +330,12 @@ cmd_check() {
   command -v bun     &>/dev/null && _chk "bun"    ok || _chk "bun"    fail
 
   log_section "Tools"
-  [[ -d "$HOME/.tmux/plugins/tpm" ]] && _chk "tpm"      ok || _chk "tpm"      fail
-  command -v claude   &>/dev/null    && _chk "claude"   ok || _chk "claude"   fail
-  command -v opencode &>/dev/null    && _chk "opencode" ok || _chk "opencode" fail
-  command -v gcloud   &>/dev/null    && _chk "gcloud"   ok || _chk "gcloud"   fail
-  command -v orb      &>/dev/null    && _chk "orbstack" ok || _chk "orbstack" fail
+  [[ -d "$HOME/.tmux/plugins/tpm" ]] && _chk "tpm"       ok || _chk "tpm"       fail
+  command -v claude    &>/dev/null    && _chk "claude"    ok || _chk "claude"    fail
+  command -v opencode  &>/dev/null    && _chk "opencode"  ok || _chk "opencode"  fail
+  command -v gcloud    &>/dev/null    && _chk "gcloud"    ok || _chk "gcloud"    fail
+  command -v terraform &>/dev/null    && _chk "terraform" ok || _chk "terraform" fail
+  command -v orb       &>/dev/null    && _chk "orbstack"  ok || _chk "orbstack"  fail
 
   echo
   if [[ ${#missing[@]} -eq 0 ]]; then

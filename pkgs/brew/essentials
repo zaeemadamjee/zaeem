@@ -43,5 +43,5 @@ atuin
 fastfetch
 
 # Cloud
-# terraform: not installed on devbox (run from Mac)
+# terraform: macOS only — see pkgs/brew/macos (not installed on Linux devbox)
 # opencode:  installed via native script in rigging (no Linux brew bottle)

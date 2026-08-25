@@ -1,0 +1,3 @@
+# macOS only — not installed on Linux devbox VM
+# These packages are installed by bin/rigging (macOS) but skipped by devbox/bin/rigging (Linux).
+hashicorp/tap/terraform
