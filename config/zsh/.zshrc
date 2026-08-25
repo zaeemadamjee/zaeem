@@ -1,3 +1,16 @@
+# --- Guard: prevent sourcing zsh config from bash/sh (e.g. `szsh` from bash) ---
+# If this file is sourced by bash, ZSH_VERSION will be unset. Fail fast with a
+# helpful message and switch to zsh instead of spewing setopt/zmodload errors.
+if [[ -z "${ZSH_VERSION:-}" ]]; then
+  _cur_shell="${0##*/}"
+  # $0 is often `-bash` or `bash` when sourced from bash; fall back to $SHELL for display
+  echo "zshrc: not running under zsh (current: ${_cur_shell:-${SHELL:-unknown}}). Switching to zsh..." >&2
+  if command -v zsh &>/dev/null; then
+    exec zsh
+  fi
+  return 0 2>/dev/null || exit 0
+fi
+
 # --- PATH: tool install dirs (must come before welcome so rigging --check finds them) ---
 export PATH="$HOME/.local/bin:$PATH"           # claude code
 export PATH="$HOME/.opencode/bin:$PATH"        # opencode

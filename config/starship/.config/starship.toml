@@ -50,14 +50,14 @@ disabled = true
 [gcloud]
 symbol = " "
 style = "bold blue"
-format = " / [$symbol($project)]($style) "
+format = " / [$symbol$project]($style)"
 disabled = false
 
 # ─── PYTHON VENV ──────────────────────────────────────────────────
 [python]
-symbol = " "
+symbol = ""
 style = "muted"
-format = " / [$symbol($virtualenv)]($style) "
+format = " / [$virtualenv]($style)"
 # Only shows when a virtualenv is active; hides python version noise
 pyenv_version_name = false
 detect_files = []

@@ -168,6 +168,33 @@ cmd_link() {
       && log_ok "$pkg" \
       || { log_warn "stow $pkg failed"; _track_failed "stow $pkg"; }
   done
+
+  # Ensure zsh is the default shell (startup-script does this on first boot,
+  # but existing VMs created before that fix or with a stale shell need it
+  # re-applied idempotently on every rigging run).
+  if command -v zsh &>/dev/null; then
+    local _zsh_path _curr_shell
+    _zsh_path="$(command -v zsh)"
+    _curr_shell="$(getent passwd "$USER" 2>/dev/null | cut -d: -f7 || echo "")"
+    if [[ "$_curr_shell" != "$_zsh_path" ]]; then
+      log_info "Setting zsh as default shell..."
+      if sudo chsh -s "$_zsh_path" "$USER" 2>/dev/null || chsh -s "$_zsh_path" 2>/dev/null; then
+        log_ok "Default shell → zsh ($_zsh_path)"
+      else
+        # Fallback: usermod (requires sudo)
+        if sudo usermod -s "$_zsh_path" "$USER" 2>/dev/null; then
+          log_ok "Default shell → zsh ($_zsh_path) via usermod"
+        else
+          log_warn "Failed to set zsh as default shell — run: chsh -s $_zsh_path"
+          _track_failed "default shell"
+        fi
+      fi
+    else
+      log_ok "Default shell is zsh ($_zsh_path)"
+    fi
+  else
+    log_warn "zsh not found — cannot set default shell"
+  fi
 }
 
 _seed_harness_configs() {

@@ -103,8 +103,25 @@ resource "google_compute_instance" "devbox" {
       set -euo pipefail
       exec > /var/log/startup-script.log 2>&1
 
-      # Only run once — leave a marker file
       MARKER="/var/lib/startup-complete"
+
+      # Always ensure zsh is the default shell, even on reboots where the
+      # marker already exists. This fixes existing VMs that were created
+      # before the shell fix, and keeps the shell correct if zsh is
+      # reinstalled. Runs before the marker guard so it executes every boot.
+      if command -v zsh &>/dev/null; then
+        ZSH_PATH=$(command -v zsh)
+        CURR_SHELL=$(getent passwd zaeem 2>/dev/null | cut -d: -f7 || echo "")
+        if [[ "$CURR_SHELL" != "$ZSH_PATH" ]]; then
+          # User may not exist yet on first boot — defer to later
+          if id zaeem &>/dev/null; then
+            echo "[startup] Fixing default shell → $ZSH_PATH (was $CURR_SHELL)"
+            usermod -s "$ZSH_PATH" zaeem || true
+          fi
+        fi
+      fi
+
+      # Only run the heavy provisioning once — leave a marker file
       [ -f "$MARKER" ] && exit 0
 
       # Create the zaeem user and inject SSH keys immediately — before apt or

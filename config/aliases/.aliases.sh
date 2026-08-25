@@ -2,7 +2,21 @@
 # --------------- #
 
 # --- zshrc ---
-alias szsh='source ~/.zshrc'
+# Reload zsh config. Safe to invoke from bash — switches to zsh instead of
+# sourcing zsh syntax in bash (which causes the setopt/zmodload errors).
+szsh() {
+  if [[ -n "${ZSH_VERSION:-}" ]]; then
+    # shellcheck disable=SC1090
+    source ~/.zshrc
+  else
+    if command -v zsh &>/dev/null; then
+      exec zsh
+    else
+      echo "zsh not found — install it first" >&2
+      return 1
+    fi
+  fi
+}
 
 # --- ls ---
 alias ls='eza -A'
