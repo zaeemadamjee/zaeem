@@ -1,10 +1,10 @@
 # Global format (left prompt)
 format = """
 [-](bold #9ece6a) $directory\
+$python\
 $git_branch\
 $git_status\
 $gcloud\
-$python\
 $character
 """
 

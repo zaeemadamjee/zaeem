@@ -37,6 +37,10 @@ fx
 glow
 zellij
 
+# Python version management (pyenv + virtualenv)
+pyenv
+pyenv-virtualenv
+
 # Prompt & shell history
 starship
 atuin
