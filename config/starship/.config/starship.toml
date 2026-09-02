@@ -1,9 +1,9 @@
 # Global format (left prompt)
 format = """
 [-](bold #9ece6a) $directory\
-$python\
 $git_branch\
 $git_status\
+$python\
 $gcloud\
 $character
 """
@@ -30,7 +30,7 @@ subtle = "#24283b"    # darker background elements
 [directory]
 style = "bold cyan"
 truncate_to_repo = true
-format = "[$path]($style)"
+format = "[  $path]($style)"
 
 # ─── GIT BRANCH ───────────────────────────────────────────────────
 [git_branch]
@@ -55,9 +55,9 @@ disabled = false
 
 # ─── PYTHON VENV ──────────────────────────────────────────────────
 [python]
-symbol = ""
-style = "muted"
-format = " / [$virtualenv]($style)"
+symbol = " "
+style = "bold yellow"
+format = " / [$symbol$virtualenv]($style)"
 # Only shows when a virtualenv is active; hides python version noise
 pyenv_version_name = false
 detect_files = []
