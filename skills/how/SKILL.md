@@ -73,6 +73,8 @@ The explainer gets all explorers' findings and writes the human-facing explanati
 
 Present the explainer's output to the user. You may lightly edit for clarity or add context from the conversation, but don't substantially rewrite. The explainer's communication is the product.
 
+Apply the **show-me** skill when the explanation depends on a relationship, sequence, state change, or module shape that is materially easier to understand visually.
+
 ### Output Format
 
 Follow this structure, adapted to the question. Not every section is needed for every question.

@@ -19,6 +19,7 @@ Remaining triggers:
 - Contested design → the **interrogate** skill (multi-model adversarial) before shipping.
 - Nontrivial multi-step → write the throughput checkpoint (Feature step 3).
 - Any prose surface → the **unslop** skill. Your reply is a prose surface; write it per **Writing the reply**. Agent-facing prose also follows `playbooks/authoring-a-skill.md`.
+- A relationship, sequence, state change, or before-and-after shape that prose makes hard to follow → the **show-me** skill. Pick the smallest useful visual; skip it when a fact, one-step action, or short list is clearer.
 - Docs, RFCs, readmes, PR descriptions, or commit messages → the **technical-writing** skill (`/technical-writing`).
 - Before review → the **no-comments** skill (`/no-comments`).
 - Writing a test, reviewing tests, or deciding whether a change needs one → the **better-tests** skill. Its gate makes omission a stated outcome, not a lapse; a CSS or copy fix earns runtime verification, not a regression test.

@@ -14,7 +14,7 @@ Invoke any skill with a slash command, e.g. `/z-code`, `/no-comments`, `/unslop`
 
 - **Principles.** 21 `principle-*` leaf skills (laziness protocol, model the domain, prove it works, ...). z-code cites the ones that shaped each decision.
 - **Workflow.** `how` (explain a subsystem), `why` (recover the rationale behind code), `architect` (design before implementing), `arena` (N parallel attempts, pick and graft), `swarm`, `interrogate` (adversarial review), `reflect`, `figure-it-out`, `show-me-your-work`, `tdd`.
-- **Code quality.** `no-comments` (delete narrating comments), `better-tests` (gate whether a test is worth writing, enforce behavior-only test quality, hunt worthless tests via Test Sicko), `unslop` (de-slop prose), `technical-writing` (docs, PR descriptions, commits), `typescript-best-practices`.
+- **Quality and communication.** `no-comments` (delete narrating comments), `better-tests` (gate whether a test is worth writing, enforce behavior-only test quality, hunt worthless tests via Test Sicko), `unslop` (de-slop prose), `technical-writing` (docs, PR descriptions, commits), `show-me` (explain with concise diagrams and visual artifacts), `typescript-best-practices`.
 
 Stacked-PR playbooks (babysit, shipping, autopilot) auto-detect the stacking tool per repo: `gh stack`, then Graphite, then plain `gh`. See `z-code/references/stacking.md`.
 
@@ -46,7 +46,10 @@ Individual skills also work standalone:
 /no-comments            # strip narrating comments from the current diff
 /how does auth work?    # architectural walkthrough of a subsystem
 /interrogate            # multi-perspective adversarial review before shipping
+/show-me how requests flow from rigging into the installed skill directories
 ```
+
+`show-me` is adapted from [HumanLayer's show-me skill](https://github.com/humanlayer/skills/blob/main/plugins/show-me/skills/show-me/SKILL.md) for the harness-neutral setup in this repository.
 
 ## Adding a skill
 
