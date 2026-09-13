@@ -1,7 +1,6 @@
 .DS_Store
-config/agents/
-config/claude/
-config/opencode/
+/.opencode/
+/.claude/
 devbox/profiles/*.env
 .worktrees/
 devbox/terraform/.terraform/
