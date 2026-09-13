@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-scheduler", "./pushover-notify.js", "octto"],
+  "plugins": ["./pushover-notify.js", "@kitlangton/opencode-pr-tracker", "@kitlangton/opencode-session-recap"],
   "mcp": {
     "notion": {
       "type": "remote",

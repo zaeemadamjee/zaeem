@@ -4,6 +4,7 @@ gh
 lazygit
 tig
 git-delta
+kitlangton/tap/ghui
 
 # Shell & multiplexer
 tmux
