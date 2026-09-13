@@ -1,6 +1,6 @@
 {
   "theme": "dark",
-  "themeSync": true,
+  "themeSync": false,
   "themeLight": "light",
   "themeDark": "dark",
   "transparent": false,
