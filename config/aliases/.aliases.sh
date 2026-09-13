@@ -28,6 +28,8 @@ alias c='clear'
 # --- git ---
 alias gs='git status'
 alias gf='git fetch'
+alias gp='git pull'
+alias grh='git reset --hard'
 alias gst='git status'
 alias gd='git diff'
 alias gl='git log --oneline -20'
