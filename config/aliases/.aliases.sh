@@ -51,10 +51,11 @@ alias cc='claude'
 alias ccd='claude --dangerously-skip-permissions'
 
 # --- opencode ---
-# v2: `opencode web` is gone (folded into `serve`) and `--mdns` was dropped.
-# The server always requires HTTP basic auth (username defaults to
-# "opencode"); tailnet-only access, so a fixed non-secret password is fine.
-alias oc='OPENCODE_SERVER_PASSWORD=opencode opencode serve --hostname 0.0.0.0 --port 4096'
+alias oc='opencode'
+alias ocserve='opencode service set hostname 0.0.0.0 && opencode service set port 4096 && opencode service set password "opencode" && opencode service start'
+alias ocstatus='opencode service status'
+alias ocrestart='opencode service restart'
+alias ocstop='opencode service stop'
 
 # --- gcloud ---
 alias gauth='gcloud auth login'
