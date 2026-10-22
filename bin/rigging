@@ -9,7 +9,7 @@
 #   link     Stow config packages into ~ (dotfiles)
 #   shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
 #   langs    Install language toolchains (sourced from pkgs/lang/*)
-#   tools    Install coding tools (claude code, opencode, TPM)
+#   tools    Install coding tools (claude code, opencode, druk, TPM)
 #   skills   Force re-copy skills from repo into ~/.agents/skills and ~/.claude/skills
 #   check    Print status of all components without modifying anything
 #   help     Show this message
@@ -56,6 +56,8 @@ export BREW_PREFIX
 source "$REPO_ROOT/lib/log.sh"
 # shellcheck source=../lib/brew.sh
 source "$REPO_ROOT/lib/brew.sh"
+# shellcheck source=../lib/installers.sh
+source "$REPO_ROOT/lib/installers.sh"
 # shellcheck source=../lib/banner.sh
 source "$REPO_ROOT/lib/banner.sh"
 # shellcheck source=../lib/agent-harness-configs.sh
@@ -73,7 +75,6 @@ _track_failed() { FAILED+=("$1"); }
 
 cmd_install() {
   log_section "Homebrew packages"
-  _tap_from_file     "$REPO_ROOT/pkgs/brew/taps"
   _install_from_file "$REPO_ROOT/pkgs/brew/essentials"
   _install_from_file "$REPO_ROOT/pkgs/brew/macos"
   _install_from_file "$REPO_ROOT/pkgs/brew/casks" --cask
@@ -160,6 +161,7 @@ eval "$("${BREW_PREFIX}/bin/brew" shellenv)"
 # --- PATH ---
 export PATH="$HOME/.local/bin:$PATH"               # claude code
 export PATH="$HOME/.opencode/bin:$PATH"            # opencode
+export PATH="$HOME/.druk/bin:$PATH"                # druk
 export PATH="$HOME/.npm-global/bin:$PATH"          # npm globals
 export PATH="$HOME/.bun/bin:$PATH"                 # bun
 export PATH="$HOME/.cargo/bin:$PATH"               # rust/cargo
@@ -262,16 +264,8 @@ cmd_tools() {
 
   # claude code is installed via cask "claude-code" in pkgs/brew/casks
 
-  # opencode — no bottled brew formula (would build from source), install via
-  # native script instead, matching devbox/bin/rigging
-  if command -v opencode &>/dev/null; then
-    log_info "opencode: already installed"
-  else
-    log_info "opencode: installing..."
-    curl -fsSL https://opencode.ai/install | bash \
-      && log_ok "opencode" \
-      || { log_warn "opencode install failed"; _track_failed "opencode"; }
-  fi
+  install_opencode
+  install_druk
 
   log_info "Seeding tealdeer page cache..."
   tldr --update >/dev/null 2>&1 || true
@@ -380,7 +374,7 @@ cmd_help() {
     link     Stow config packages into ~ (dotfiles)
     shell    Write ~/.config/zaeem/shell.zsh and source it from ~/.zshrc
     langs    Install language toolchains (pkgs/lang/*)
-    tools    Install coding tools (claude, opencode, TPM)
+    tools    Install coding tools (claude, opencode, druk, TPM)
     skills   Force re-copy skills from repo, overwriting ~/.agents/skills and ~/.claude/skills
     check    Print status of all components without modifying anything
     help     Show this message

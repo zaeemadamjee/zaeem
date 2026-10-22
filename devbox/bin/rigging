@@ -8,7 +8,7 @@
 #   install      Homebrew + brew bundle
 #   link         Stow dotfiles + .hushlogin
 #   langs        Language toolchains via pkgs/lang/*
-#   tools        Claude code, opencode, TPM, atuin, tldr
+#   tools        Claude code, opencode, druk, TPM, atuin, tldr
 #   skills       Force re-copy skills from repo into ~/.agents/skills and ~/.claude/skills
 #   docker       Docker Engine + daemon + group membership
 #   tailscale    Install Tailscale daemon + authenticate
@@ -36,6 +36,8 @@ export DEVBOX_BIN_DIR REPO_ROOT CONFIG_DIR DEVBOX_DIR BREW_PREFIX
 source "$REPO_ROOT/lib/log.sh"
 # shellcheck source=../../lib/brew.sh
 source "$REPO_ROOT/lib/brew.sh"
+# shellcheck source=../../lib/installers.sh
+source "$REPO_ROOT/lib/installers.sh"
 # shellcheck source=../../lib/agent-harness-configs.sh
 source "$REPO_ROOT/lib/agent-harness-configs.sh"
 
@@ -129,7 +131,6 @@ cmd_install() {
       || { log_warn "gcloud install failed"; _track_failed "gcloud"; }
   fi
 
-  _tap_from_file     "$REPO_ROOT/pkgs/brew/taps"
   _install_from_file "$REPO_ROOT/pkgs/brew/essentials"
   # no casks on Linux — Linuxbrew does not support brew install --cask
 }
@@ -245,15 +246,8 @@ cmd_tools() {
       || { log_warn "claude code install failed"; _track_failed "claude code"; }
   fi
 
-  # opencode — no Linux brew bottle, install via native script
-  if command -v opencode &>/dev/null; then
-    log_info "opencode: already installed"
-  else
-    log_info "opencode: installing..."
-    curl -fsSL https://opencode.ai/install | bash \
-      && log_ok "opencode" \
-      || { log_warn "opencode install failed"; _track_failed "opencode"; }
-  fi
+  install_opencode
+  install_druk
 
   # xdg-open shim — OpenCode (and other tools) call xdg-open directly to launch
   # browsers for OAuth flows. In a headless SSH session xdg-open either doesn't
@@ -872,7 +866,7 @@ cmd_help() {
     install      Homebrew + brew bundle
     link         Stow dotfiles + .hushlogin
     langs        Language toolchains via pkgs/lang/*
-    tools        Claude code, opencode, TPM, atuin, tldr
+    tools        Claude code, opencode, druk, TPM, atuin, tldr
     skills       Force re-copy skills from repo, overwriting ~/.agents/skills and ~/.claude/skills
     docker       Docker Engine + daemon + group membership
     tailscale    Install Tailscale daemon + authenticate

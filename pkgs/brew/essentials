@@ -22,7 +22,6 @@ make
 gcc
 vim
 neovim
-letstri/tap/druk
 
 # Modern CLI replacements
 bat
@@ -49,4 +48,4 @@ fastfetch
 
 # Cloud
 # terraform: macOS only — see pkgs/brew/macos (not installed on Linux devbox)
-# opencode:  installed via native script in rigging (no Linux brew bottle)
+# opencode (v2), druk: installed via upstream curl scripts (lib/installers.sh)

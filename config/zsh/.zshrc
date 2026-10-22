@@ -14,6 +14,7 @@ fi
 # --- PATH: tool install dirs (must come before welcome so rigging --check finds them) ---
 export PATH="$HOME/.local/bin:$PATH"           # claude code
 export PATH="$HOME/.opencode/bin:$PATH"        # opencode
+export PATH="$HOME/.druk/bin:$PATH"            # druk
 export PATH="$HOME/.npm-global/bin:$PATH"      # npm globals
 export PATH="$HOME/.bun/bin:$PATH"             # bun
 export PATH="$HOME/.cargo/bin:$PATH"           # rust/cargo

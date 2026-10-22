@@ -54,7 +54,7 @@ alias ccd='claude --dangerously-skip-permissions'
 
 # --- opencode ---
 alias oc='opencode'
-alias ocserve='opencode service set hostname 0.0.0.0 && opencode service set port 4096 && opencode service set password "opencode" && opencode service start'
+alias ocserve='opencode service set hostname 0.0.0.0 && opencode service set port 4096 && opencode service set password "oc" && opencode service start'
 alias ocstatus='opencode service status'
 alias ocrestart='opencode service restart'
 alias ocstop='opencode service stop'
